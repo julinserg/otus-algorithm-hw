@@ -10,6 +10,16 @@ func powerIterate(num int, power int) int {
 	return res
 }
 
+func powerRecursive(num int, power int) int {
+	if power == 0 {
+		return 1
+	}
+	if power == 1 {
+		return num
+	}
+	return num * powerRecursive(num, power-1)
+}
+
 func fibonacciIterate(index int) int {
 	if index == 0 {
 		return 0
@@ -58,4 +68,7 @@ func main() {
 	fmt.Printf("fibonacciIterate index: %d. Result: %d \n", 10, fibonacciIterate(10))
 	fmt.Printf("fibonacciRecursive index: %d. Result: %d \n", 10, fibonacciRecursive(10))
 	fmt.Printf("primeNumbersBruteforce limit: %d. Result: %d \n", 100, primeNumbersBruteforce(100))
+
+	fmt.Printf("powerRecursive num: %d, power: %d. Result: %d \n", 2, 5, powerRecursive(2, 5))
+
 }
