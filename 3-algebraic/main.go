@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 func powerIterate(num int, power int) int {
 	res := 1
@@ -102,13 +105,40 @@ func primeNumbersBruteforce(limit int) int {
 	count := 0
 	for i := 2; i <= limit; i++ {
 		isPrime := true
-		for d := 2; d <= limit; d++ {
+		for d := 2; d <= i; d++ {
 			if i%d == 0 && i != d {
 				isPrime = false
 			}
 		}
 		if isPrime {
 			count++
+		}
+	}
+	return count
+}
+
+func primeNumbersBruteforceWithOptimization(limit int) int {
+	count := 0
+	primes := make([]int, 0)
+	for i := 2; i <= limit; i++ {
+		isPrime := true
+		if i == 1 {
+			isPrime = false
+		} else if i == 2 {
+			isPrime = true
+		} else if i%2 == 0 {
+			isPrime = false
+		} else {
+			for j := 0; primes[j] <= int(math.Sqrt(float64(i))); j++ {
+				if i%primes[j] == 0 && i != primes[j] {
+					isPrime = false
+				}
+			}
+		}
+
+		if isPrime {
+			count++
+			primes = append(primes, i)
 		}
 	}
 	return count
@@ -123,4 +153,5 @@ func main() {
 	fmt.Printf("powerRecursive num: %d, power: %d. Result: %d \n", 2, 5, powerRecursive(2, 5))
 	fmt.Printf("powerFast num: %d, power: %d. Result: %d \n", 2, 5, powerFast(2, 5))
 	fmt.Printf("fibonacciMatrix index: %d. Result: %d \n", 10, fibonacciMatrix(10))
+	fmt.Printf("primeNumbersBruteforceWithOptimization limit: %d. Result: %d \n", 100000, primeNumbersBruteforceWithOptimization(100000))
 }
