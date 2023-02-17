@@ -34,8 +34,5 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3   
 
-      - name: Build
-        run: make build   
-
       - name: Tests
         run: make test
