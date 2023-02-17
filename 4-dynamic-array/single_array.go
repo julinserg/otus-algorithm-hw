@@ -1,18 +1,5 @@
 package p04dynamicarray
 
-type ArrayItemType interface {
-	int32 | int64 | float32 | float64 | string
-}
-
-type IArray[T ArrayItemType] interface {
-	Create(int)
-	Size() int
-	Get(int) T
-	Set(int, T)
-	Add(int, T)
-	//Remove(int) T
-}
-
 type SingleArray[T ArrayItemType] struct {
 	m_array []T
 }
@@ -29,17 +16,31 @@ func (s *SingleArray[T]) Set(index int, item T) {
 	s.m_array[index] = item
 }
 
-func (s *SingleArray[T]) resize() {
+func (s *SingleArray[T]) resize(index int) {
 	arrayNew := make([]T, s.Size()+1)
-	for i := 0; i < len(s.m_array); i++ {
-		arrayNew[i] = s.m_array[i]
+	indexOld := 0
+	indexNew := 0
+	for indexNew < len(arrayNew) {
+		if indexNew == index {
+			indexNew++
+			continue
+		}
+		arrayNew[indexNew] = s.m_array[indexOld]
+		indexNew++
+		indexOld++
 	}
 	s.m_array = arrayNew
 }
 
 func (s *SingleArray[T]) Add(index int, item T) {
-	s.resize()
-	s.m_array[s.Size()-1] = item
+	if index < 0 {
+		panic("Error index")
+	} else if index > len(s.m_array) {
+		index = len(s.m_array)
+	}
+
+	s.resize(index)
+	s.m_array[index] = item
 }
 
 func (s *SingleArray[T]) Create(size int) {
