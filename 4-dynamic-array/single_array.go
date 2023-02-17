@@ -1,12 +1,11 @@
-package main
-
-import "fmt"
+package p04dynamicarray
 
 type ArrayItemType interface {
 	int32 | int64 | float32 | float64 | string
 }
 
 type IArray[T ArrayItemType] interface {
+	Create(int)
 	Size() int
 	Get(int) T
 	Set(int, T)
@@ -43,19 +42,6 @@ func (s *SingleArray[T]) Add(index int, item T) {
 	s.m_array[s.Size()-1] = item
 }
 
-func NewSingleArrayString(size int) IArray[string] {
-	sa := &SingleArray[string]{}
-	sa.m_array = make([]string, size)
-	return sa
-}
-
-func main() {
-	sa := NewSingleArrayString(2)
-	sa.Set(0, "123")
-	sa.Set(1, "456")
-	fmt.Printf("SingleArray size %d \n", sa.Size())
-	fmt.Printf("SingleArray get %s \n", sa.Get(0))
-	fmt.Printf("SingleArray get %s \n", sa.Get(1))
-	sa.Add(1, "789")
-	fmt.Printf("SingleArray get %s \n", sa.Get(2))
+func (s *SingleArray[T]) Create(size int) {
+	s.m_array = make([]T, size)
 }
