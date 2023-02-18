@@ -16,7 +16,7 @@ func (s *SingleArray[T]) Set(index int, item T) {
 	s.m_array[index] = item
 }
 
-func (s *SingleArray[T]) resize(index int) {
+func (s *SingleArray[T]) resizeUp(index int) {
 	arrayNew := make([]T, s.Size()+1)
 	indexOld := 0
 	indexNew := 0
@@ -32,6 +32,25 @@ func (s *SingleArray[T]) resize(index int) {
 	s.m_array = arrayNew
 }
 
+func (s *SingleArray[T]) resizeDown(index int) T {
+	arrayNew := make([]T, s.Size()-1)
+	indexOld := 0
+	indexNew := 0
+	var item T
+	for indexOld < len(s.m_array) {
+		if indexOld == index {
+			item = s.m_array[index]
+			indexOld++
+			continue
+		}
+		arrayNew[indexNew] = s.m_array[indexOld]
+		indexNew++
+		indexOld++
+	}
+	s.m_array = arrayNew
+	return item
+}
+
 func (s *SingleArray[T]) Add(index int, item T) {
 	if index < 0 {
 		panic("Error index")
@@ -39,8 +58,18 @@ func (s *SingleArray[T]) Add(index int, item T) {
 		index = len(s.m_array)
 	}
 
-	s.resize(index)
+	s.resizeUp(index)
 	s.m_array[index] = item
+}
+
+func (s *SingleArray[T]) Remove(index int) T {
+	if index < 0 {
+		panic("Error index")
+	} else if index > len(s.m_array) {
+		index = len(s.m_array)
+	}
+
+	return s.resizeDown(index)
 }
 
 func (s *SingleArray[T]) Create(size int) {

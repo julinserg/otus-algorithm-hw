@@ -5,10 +5,9 @@ type ArrayItemType interface {
 }
 
 type IArray[T ArrayItemType] interface {
-	Create(int)
 	Size() int
 	Get(int) T
 	Set(int, T)
 	Add(int, T)
-	//Remove(int) T
+	Remove(int) T
 }
