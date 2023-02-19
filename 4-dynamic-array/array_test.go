@@ -77,6 +77,14 @@ func testItemAddAndRemove(t *testing.T, array IArray[string]) {
 	require.Equal(t, "456", array.Get(2))
 	require.Equal(t, "999", array.Get(3))
 
+	array.Add(2, "777")
+
+	require.Equal(t, "123", array.Get(0))
+	require.Equal(t, "789", array.Get(1))
+	require.Equal(t, "777", array.Get(2))
+	require.Equal(t, "456", array.Get(3))
+	require.Equal(t, "999", array.Get(4))
+
 }
 
 func testItemAddAndRemoveFrontElement(t *testing.T, array IArray[string]) {
