@@ -27,6 +27,12 @@ func NewFactorArrayString(size int) IArray[string] {
 	return sa
 }
 
+func NewGoArrayString(size int) IArray[string] {
+	sa := &GoArray[string]{}
+	sa.Create(size)
+	return sa
+}
+
 func testItemAddAndRemove(t *testing.T, array IArray[string]) {
 	array.Set(0, "123")
 	array.Set(1, "456")
@@ -167,6 +173,18 @@ func TestFactorArray(t *testing.T) {
 
 func TestFactorArrayTime(t *testing.T) {
 	sa := NewFactorArrayString(0)
+	testItemAddAndRemoveFrontElement(t, sa)
+	testItemAddAndRemoveBackElement(t, sa)
+	testItemAddAndRemoveMiddleElement(t, sa)
+}
+
+func TestGoArray(t *testing.T) {
+	sa := NewGoArrayString(2)
+	testItemAddAndRemove(t, sa)
+}
+
+func TestGoArrayTime(t *testing.T) {
+	sa := NewGoArrayString(0)
 	testItemAddAndRemoveFrontElement(t, sa)
 	testItemAddAndRemoveBackElement(t, sa)
 	testItemAddAndRemoveMiddleElement(t, sa)
