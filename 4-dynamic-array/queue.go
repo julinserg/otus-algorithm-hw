@@ -64,10 +64,9 @@ func (s *Queue[T]) Back() T {
 func (s *Queue[T]) List() []T {
 	result := make([]T, 0)
 	node := s.back
-	for node.next != nil {
+	for node != nil {
 		result = append(result, node.item)
 		node = node.next
 	}
-	result = append(result, node.item)
 	return result
 }
