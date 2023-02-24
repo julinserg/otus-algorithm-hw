@@ -5,11 +5,24 @@ import (
 	"fmt"
 )
 
+func swap(array *[]int, indexA, indexB int) {
+	t := (*array)[indexA]
+	(*array)[indexA] = (*array)[indexB]
+	(*array)[indexB] = t
+}
+
 type SorterBubble struct{}
 
 func (s *SorterBubble) Sort(in []int) []int {
-	result := make([]int, 0)
-	return result
+	N := len(in)
+	for i := 0; i < N; i++ {
+		for j := 0; j < N-1-i; j++ {
+			if in[j] > in[j+1] {
+				swap(&in, j, j+1)
+			}
+		}
+	}
+	return in
 }
 
 var dir string
