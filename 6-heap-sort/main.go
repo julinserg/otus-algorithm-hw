@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 )
 
 type SorterBubble struct{}
@@ -24,13 +25,18 @@ type TestData struct {
 
 func main() {
 	flag.Parse()
-	testData, err := readTestData(dir + "\\0.random")
-	if err != nil {
-		panic(err)
+	listFolder := []string{"0.random", "1.digits", "2.sorted", "3.revers"}
+	for _, lf := range listFolder {
+		fmt.Printf("Test folder - %s \n", lf)
+		testData, err := readTestData(dir + "\\" + lf)
+		if err != nil {
+			panic(err)
+		}
+		s := &SorterBubble{}
+		err = runTests(testData, s)
+		if err != nil {
+			panic(err)
+		}
 	}
-	s := &SorterBubble{}
-	err = runTests(testData, s)
-	if err != nil {
-		panic(err)
-	}
+
 }

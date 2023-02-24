@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -16,11 +17,15 @@ type ISorter interface {
 
 func arrayStrToInt(array []string) []int {
 	inputArrayInt := make([]int, 0)
-	for _, i := range array {
+	for index, i := range array {
+		if i == "" {
+			continue
+		}
 		j, err := strconv.Atoi(i)
 		if err != nil {
 			panic(err)
 		}
+		_ = index
 		inputArrayInt = append(inputArrayInt, j)
 	}
 	return inputArrayInt
@@ -36,41 +41,51 @@ func readTestData(dirPath string) ([]TestData, error) {
 
 		fileIn, err := os.Open(filepath.Join(dirPath, "test."+strconv.Itoa(numTest)+".in"))
 		if err != nil {
-			break
+			panic(err)
 		}
 		defer fileIn.Close()
-
-		readerIn := bufio.NewReader(fileIn)
-		line, _, err := readerIn.ReadLine()
+		fmt.Printf("Open file in - %s \n", fileIn.Name())
+		scannerIn := bufio.NewScanner(fileIn)
+		bufIn := make([]byte, 0, 1024*1024*1024)
+		scannerIn.Buffer(bufIn, 1024*1024*1024)
+		scannerIn.Scan()
+		if err := scannerIn.Err(); err != nil {
+			log.Fatal(err)
+		}
+		sizeArray, err := strconv.Atoi(scannerIn.Text())
 		if err != nil {
 			panic(err)
 		}
-		sizeArray, err := strconv.Atoi(string(line))
-		if err != nil {
+		inputArrayIntAll := make([]int, 0)
+		for scannerIn.Scan() {
+			inputArrayStr := strings.Split(scannerIn.Text(), " ")
+			inputArrayInt := arrayStrToInt(inputArrayStr)
+			inputArrayIntAll = append(inputArrayIntAll, inputArrayInt...)
+		}
+		if err := scannerIn.Err(); err != nil {
 			panic(err)
 		}
-		line, _, err = readerIn.ReadLine()
-		if err != nil {
-			panic(err)
-		}
-		inputArrayStr := strings.Split(string(line), " ")
-		inputArrayInt := arrayStrToInt(inputArrayStr)
 
 		fileOut, err := os.Open(filepath.Join(dirPath, "test."+strconv.Itoa(numTest)+".out"))
 		if err != nil {
-			break
-		}
-		defer fileOut.Close()
-
-		readerOut := bufio.NewReader(fileOut)
-		line, _, err = readerOut.ReadLine()
-		if err != nil {
 			panic(err)
 		}
-		outputArrayStr := strings.Split(string(line), " ")
-		outputArrayInt := arrayStrToInt(outputArrayStr)
+		defer fileOut.Close()
+		fmt.Printf("Open file out - %s \n", fileOut.Name())
+		outputArrayIntAll := make([]int, 0)
+		scannerOut := bufio.NewScanner(fileOut)
+		bufOut := make([]byte, 0, 1024*1024*1024)
+		scannerOut.Buffer(bufOut, 1024*1024*1024)
+		for scannerOut.Scan() {
+			outputArrayStr := strings.Split(scannerOut.Text(), " ")
+			outputArrayInt := arrayStrToInt(outputArrayStr)
+			outputArrayIntAll = append(outputArrayIntAll, outputArrayInt...)
+		}
+		if err := scannerOut.Err(); err != nil {
+			panic(err)
+		}
 
-		result = append(result, TestData{input: inputArrayInt, output: outputArrayInt, sizeArray: sizeArray})
+		result = append(result, TestData{input: inputArrayIntAll, output: outputArrayIntAll, sizeArray: sizeArray})
 
 	}
 	return result, nil
@@ -83,7 +98,12 @@ func runTests(testData []TestData, s ISorter) error {
 		if reflect.DeepEqual(result, data.output) {
 			fmt.Printf("%d - Success \n", data.sizeArray)
 		} else {
-			fmt.Printf("%d - Fail. Expected: %v. Actual: %v \n", data.sizeArray, data.output, result)
+			if data.sizeArray <= 100 {
+				fmt.Printf("%d - Fail. Expected: %v. Actual: %v \n", data.sizeArray, data.output, result)
+			} else {
+				fmt.Printf("%d - Fail. \n", data.sizeArray)
+			}
+
 		}
 	}
 	return nil
