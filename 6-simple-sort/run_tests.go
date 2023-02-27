@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -31,20 +30,20 @@ func arrayStrToInt(array []string) []int {
 	return inputArrayInt
 }
 
-func readTestData(dirPath string) ([]TestData, error) {
+func readTestData(dirPath string, levelLimit int) ([]TestData, error) {
 	_, err := os.Stat(dirPath)
 	if err != nil {
 		return nil, err
 	}
 	result := make([]TestData, 0)
-	for numTest := 0; numTest < 7; numTest++ {
+	for numTest := 0; numTest < levelLimit; numTest++ {
 
 		fileIn, err := os.Open(filepath.Join(dirPath, "test."+strconv.Itoa(numTest)+".in"))
 		if err != nil {
 			panic(err)
 		}
 		defer fileIn.Close()
-		fmt.Printf("Open file in - %s \n", fileIn.Name())
+		//fmt.Printf("Open file in - %s \n", fileIn.Name())
 		scannerIn := bufio.NewScanner(fileIn)
 		bufIn := make([]byte, 0, 1024*1024*1024)
 		scannerIn.Buffer(bufIn, 1024*1024*1024)
@@ -71,7 +70,7 @@ func readTestData(dirPath string) ([]TestData, error) {
 			panic(err)
 		}
 		defer fileOut.Close()
-		fmt.Printf("Open file out - %s \n", fileOut.Name())
+		//fmt.Printf("Open file out - %s \n", fileOut.Name())
 		outputArrayIntAll := make([]int, 0)
 		scannerOut := bufio.NewScanner(fileOut)
 		bufOut := make([]byte, 0, 1024*1024*1024)

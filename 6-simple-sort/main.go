@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	"log"
 )
 
 func swap(array *[]int, indexA, indexB int) {
@@ -40,8 +40,8 @@ func main() {
 	flag.Parse()
 	listFolder := []string{"0.random", "1.digits", "2.sorted", "3.revers"}
 	for _, lf := range listFolder {
-		fmt.Printf("Test folder - %s \n", lf)
-		testData, err := readTestData(dir + "\\" + lf)
+		log.Printf("Test folder - %s \n", lf)
+		testData, err := readTestData(dir+"\\"+lf, 4)
 		if err != nil {
 			panic(err)
 		}
