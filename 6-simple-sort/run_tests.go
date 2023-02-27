@@ -12,6 +12,7 @@ import (
 
 type ISorter interface {
 	Sort(in []int) []int
+	Name() string
 }
 
 func arrayStrToInt(array []string) []int {
@@ -95,12 +96,12 @@ func runTests(testData []TestData, s ISorter) error {
 		result := s.Sort(data.input)
 
 		if reflect.DeepEqual(result, data.output) {
-			log.Printf("%d - Success \n", data.sizeArray)
+			log.Printf("(%s) %d - Success \n", s.Name(), data.sizeArray)
 		} else {
 			if data.sizeArray <= 100 {
-				log.Printf("%d - Fail. Expected: %v. Actual: %v \n", data.sizeArray, data.output, result)
+				log.Printf("(%s) %d - Fail. Expected: %v. Actual: %v \n", s.Name(), data.sizeArray, data.output, result)
 			} else {
-				log.Printf("%d - Fail. \n", data.sizeArray)
+				log.Printf("(%s) %d - Fail. \n", s.Name(), data.sizeArray)
 			}
 		}
 	}
