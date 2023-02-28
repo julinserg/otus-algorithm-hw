@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type ISorter interface {
@@ -96,10 +97,11 @@ func runTests(testData []TestData, s ISorter) error {
 		dataInput := make([]int, len(data.input))
 
 		copy(dataInput, data.input)
+		start := time.Now()
 		result := s.Sort(dataInput)
-
+		elapsed := time.Since(start)
 		if reflect.DeepEqual(result, data.output) {
-			log.Printf("(%s) %d - Success \n", s.Name(), data.sizeArray)
+			log.Printf("(%s) %d - Success (time: %s) \n", s.Name(), data.sizeArray, elapsed)
 		} else {
 			if data.sizeArray <= 100 {
 				log.Printf("(%s) %d - Fail. Expected: %v. Actual: %v \n", s.Name(), data.sizeArray, data.output, result)

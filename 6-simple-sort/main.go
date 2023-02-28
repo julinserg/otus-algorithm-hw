@@ -97,19 +97,30 @@ func (s *SorterInsertShift) Name() string {
 
 type SorterInsertBinarySearch struct{}
 
+func binarySearch(array *[]int, key int, left, right int) int {
+	for left <= right {
+		mid := (right + left) / 2
+		if (*array)[mid] < key {
+			left = mid + 1
+		} else {
+			right = mid - 1
+		}
+	}
+	return left
+}
+
 func (s *SorterInsertBinarySearch) Sort(in []int) []int {
 	N := len(in)
 	for i := 1; i < N; i++ {
-		el := in[i]
-		var j int
-		for j = i; j > 0; j-- {
-			if el < in[j-1] {
+		if in[i] < in[i-1] {
+			el := in[i]
+			k := binarySearch(&in, el, 0, i-1)
+			var j int
+			for j = i; j > k; j-- {
 				in[j] = in[j-1]
-			} else {
-				break
 			}
+			in[j] = el
 		}
-		in[j] = el
 	}
 	return in
 }
@@ -132,10 +143,10 @@ type TestData struct {
 func main() {
 	flag.Parse()
 	listFolder := []string{"0.random", "1.digits", "2.sorted", "3.revers"}
-	listSorterAlgo := []ISorter{ /*&SorterBubble{}, &SorterInsert{}, &SorterShell{}, &SorterInsertShift{}*/ &SorterInsertBinarySearch{}}
+	listSorterAlgo := []ISorter{&SorterBubble{}, &SorterInsert{}, &SorterShell{}, &SorterInsertShift{}, &SorterInsertBinarySearch{}}
 	for _, lf := range listFolder {
 		log.Printf("Test folder - %s \n", lf)
-		testData, err := readTestData(dir+"\\"+lf, 4)
+		testData, err := readTestData(dir+"\\"+lf, 6)
 		if err != nil {
 			panic(err)
 		}
