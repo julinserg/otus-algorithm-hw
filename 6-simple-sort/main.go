@@ -26,7 +26,7 @@ func (s *SorterBubble) Sort(in []int) []int {
 }
 
 func (s *SorterBubble) Name() string {
-	return "SorterBubble"
+	return "Bubble"
 }
 
 type SorterInsert struct{}
@@ -37,6 +37,8 @@ func (s *SorterInsert) Sort(in []int) []int {
 		for j := i; j > 0; j-- {
 			if in[j] < in[j-1] {
 				swap(&in, j, j-1)
+			} else {
+				break
 			}
 		}
 	}
@@ -44,25 +46,76 @@ func (s *SorterInsert) Sort(in []int) []int {
 }
 
 func (s *SorterInsert) Name() string {
-	return "SorterInsert"
+	return "Insert"
 }
 
 type SorterShell struct{}
 
 func (s *SorterShell) Sort(in []int) []int {
 	N := len(in)
-	for i := 1; i < N; i++ {
-		for j := i; j > 0; j-- {
-			if in[j] < in[j-1] {
-				swap(&in, j, j-1)
+	for shift := N / 2; shift >= 1; shift = shift / 2 {
+		for i := shift; i < N; i++ {
+			for j := i; j >= shift; j -= shift {
+				if in[j] < in[j-shift] {
+					swap(&in, j, j-shift)
+				} else {
+					break
+				}
 			}
 		}
 	}
+
 	return in
 }
 
 func (s *SorterShell) Name() string {
-	return "SorterShell"
+	return "Shell"
+}
+
+type SorterInsertShift struct{}
+
+func (s *SorterInsertShift) Sort(in []int) []int {
+	N := len(in)
+	for i := 1; i < N; i++ {
+		el := in[i]
+		var j int
+		for j = i; j > 0; j-- {
+			if el < in[j-1] {
+				in[j] = in[j-1]
+			} else {
+				break
+			}
+		}
+		in[j] = el
+	}
+	return in
+}
+
+func (s *SorterInsertShift) Name() string {
+	return "InsertShift"
+}
+
+type SorterInsertBinarySearch struct{}
+
+func (s *SorterInsertBinarySearch) Sort(in []int) []int {
+	N := len(in)
+	for i := 1; i < N; i++ {
+		el := in[i]
+		var j int
+		for j = i; j > 0; j-- {
+			if el < in[j-1] {
+				in[j] = in[j-1]
+			} else {
+				break
+			}
+		}
+		in[j] = el
+	}
+	return in
+}
+
+func (s *SorterInsertBinarySearch) Name() string {
+	return "InsertBinarySearch"
 }
 
 var dir string
@@ -79,7 +132,7 @@ type TestData struct {
 func main() {
 	flag.Parse()
 	listFolder := []string{"0.random", "1.digits", "2.sorted", "3.revers"}
-	listSorterAlgo := []ISorter{&SorterBubble{}, &SorterInsert{}, &SorterShell{}}
+	listSorterAlgo := []ISorter{ /*&SorterBubble{}, &SorterInsert{}, &SorterShell{}, &SorterInsertShift{}*/ &SorterInsertBinarySearch{}}
 	for _, lf := range listFolder {
 		log.Printf("Test folder - %s \n", lf)
 		testData, err := readTestData(dir+"\\"+lf, 4)

@@ -93,7 +93,10 @@ func readTestData(dirPath string, levelLimit int) ([]TestData, error) {
 
 func runTests(testData []TestData, s ISorter) error {
 	for _, data := range testData {
-		result := s.Sort(data.input)
+		dataInput := make([]int, len(data.input))
+
+		copy(dataInput, data.input)
+		result := s.Sort(dataInput)
 
 		if reflect.DeepEqual(result, data.output) {
 			log.Printf("(%s) %d - Success \n", s.Name(), data.sizeArray)
