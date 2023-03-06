@@ -1,8 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"flag"
+	"fmt"
+	"io/ioutil"
 	"log"
+	"math/rand"
+	"os"
+	"strconv"
 )
 
 func swap(array []int, indexA, indexB int) {
@@ -96,6 +102,46 @@ func (s *SorterMerge) Name() string {
 	return "Merge"
 }
 
+//................External sort..........................
+
+type SorterExternal struct {
+	fileList []*os.File
+}
+
+func (s *SorterExternal) testFileGenerate(numLine int, maxNumber int) *os.File {
+	file, err := ioutil.TempFile("", "otus")
+	if err != nil {
+		log.Fatal(err)
+	}
+	for i := 0; i < numLine; i++ {
+		file.WriteString(strconv.Itoa(rand.Intn(maxNumber)) + "\n")
+	}
+	return file
+}
+
+func (s *SorterExternal) generateTestFiles(numFile int, numLine int, maxNumber int) {
+	s.fileList = make([]*os.File, 0, numFile)
+	for i := 0; i < numFile; i++ {
+		f := s.testFileGenerate(numLine, maxNumber)
+		s.fileList = append(s.fileList, f)
+	}
+}
+
+func (s *SorterExternal) Name() string {
+	return "External"
+}
+
+func (s *SorterExternal) GenerateData(numFile int, numLine int, maxNumber int) {
+	s.generateTestFiles(numFile, numLine, maxNumber)
+}
+
+func (s *SorterExternal) Sort() []int {
+
+	return nil
+}
+
+//.......................................................
+
 var dir string
 
 func init() {
@@ -108,10 +154,23 @@ type TestData struct {
 }
 
 func main() {
-	flag.Parse()
+	sortExt := &SorterExternal{}
+	sortExt.GenerateData(10, 10, 10)
+	for _, el := range sortExt.fileList {
+		el.Seek(0, 0)
+		r := bufio.NewReader(el)
+		for i := 0; i < 10; i++ {
+			l, _, err := r.ReadLine()
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Printf(string(l) + " ")
+		}
+	}
+	/*flag.Parse()
 	listFolder := []string{"0.random", "1.digits", "2.sorted", "3.revers"}
 
-	listSorterAlgo := []ISorter{&SorterQuick{}}
+	listSorterAlgo := []ISorter{&SorterMerge{}}
 	for _, lf := range listFolder {
 		log.Printf("Test folder - %s \n", lf)
 		testData, err := readTestData(dir+"\\"+lf, 7)
@@ -124,5 +183,5 @@ func main() {
 				panic(err)
 			}
 		}
-	}
+	}*/
 }
