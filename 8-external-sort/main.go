@@ -8,6 +8,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"sort"
 	"strconv"
 )
 
@@ -105,7 +106,12 @@ func (s *SorterMerge) Name() string {
 //................External sort..........................
 
 type SorterExternal struct {
-	fileList []*os.File
+	fileList       []*os.File
+	limitArraySize int
+	fileA          *os.File
+	fileB          *os.File
+	fileC          *os.File
+	fileD          *os.File
 }
 
 func (s *SorterExternal) testFileGenerate(numLine int, maxNumber int) *os.File {
@@ -131,21 +137,271 @@ func (s *SorterExternal) Name() string {
 	return "External"
 }
 
-func (s *SorterExternal) GenerateData(numFile int, numLine int, maxNumber int) {
+func (s *SorterExternal) GenerateTestData(numFile int, numLine int, maxNumber int) {
+	s.limitArraySize = numLine
 	s.generateTestFiles(numFile, numLine, maxNumber)
 }
 
+func (s *SorterExternal) RemoveTestData() {
+	for _, el := range s.fileList {
+		os.Remove(el.Name())
+	}
+}
+
+func (s *SorterExternal) RemoveTempFile() {
+	os.Remove(s.fileA.Name())
+	os.Remove(s.fileB.Name())
+	os.Remove(s.fileC.Name())
+	os.Remove(s.fileD.Name())
+}
+
+func (s *SorterExternal) CreateTempFile() {
+	var err error
+	s.fileA, err = ioutil.TempFile("", "otus")
+	if err != nil {
+		log.Fatal(err)
+	}
+	s.fileB, err = ioutil.TempFile("", "otus")
+	if err != nil {
+		log.Fatal(err)
+	}
+	s.fileC, err = ioutil.TempFile("", "otus")
+	if err != nil {
+		log.Fatal(err)
+	}
+	s.fileD, err = ioutil.TempFile("", "otus")
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (s *SorterExternal) fileToArray(file *os.File) []int {
+	result := make([]int, 0, s.limitArraySize)
+	file.Seek(0, 0)
+	reader := bufio.NewReader(file)
+	for i := 0; i < s.limitArraySize; i++ {
+		l, _, err := reader.ReadLine()
+		if err != nil {
+			log.Fatal(err)
+		}
+		intVar, err := strconv.Atoi(string(l))
+		if err != nil {
+			log.Fatal(err)
+		}
+		result = append(result, intVar)
+	}
+	return result
+}
+
+func (s *SorterExternal) arrayToFile(array []int, file *os.File, isBegin bool) {
+	if isBegin {
+		os.Truncate(file.Name(), 0)
+		file.Seek(0, 0)
+	}
+
+	for _, el := range array {
+		file.WriteString(strconv.Itoa(el) + "\n")
+	}
+}
+
+func (s *SorterExternal) splitSrcDataByTwoFileAB() {
+	for index, el := range s.fileList {
+		ar := s.fileToArray(el)
+		sort.Ints(ar)
+		isBegin := false
+		if index == 0 {
+			isBegin = true
+		}
+		if index%2 == 0 {
+			s.arrayToFile(ar, s.fileA, isBegin)
+		} else {
+			s.arrayToFile(ar, s.fileB, isBegin)
+		}
+	}
+}
+
+func (s *SorterExternal) oneMerge(srcFile1, srcFile2, dstFile1, dstFile2 *os.File) {
+	readerOne := bufio.NewReader(srcFile1)
+	readerTwo := bufio.NewReader(srcFile2)
+	writerOne := bufio.NewWriter(dstFile1)
+	writerTwo := bufio.NewWriter(dstFile2)
+	srcFile1.Seek(0, 0)
+	srcFile2.Seek(0, 0)
+	dstFile1.Seek(0, 0)
+	dstFile2.Seek(0, 0)
+	var valA, valB, oldValA, oldValB int
+	isNextA := true
+	isNextB := true
+	count := 0
+	outputWriter := writerOne
+	currentWriterIsC := true
+	isBegin := true
+	isFileAEndFirst := true
+	for {
+		if isNextA {
+			strA, _, err := readerOne.ReadLine()
+			if err != nil {
+				isFileAEndFirst = true
+				break
+			}
+			valA, _ = strconv.Atoi(string(strA))
+		}
+		if isNextB {
+			strB, _, err := readerTwo.ReadLine()
+			if err != nil {
+				isFileAEndFirst = false
+				break
+			}
+			valB, _ = strconv.Atoi(string(strB))
+		}
+		if (oldValA < valA || oldValB < valB) && !isBegin {
+			if currentWriterIsC {
+				outputWriter = writerTwo
+			} else {
+				outputWriter = writerOne
+			}
+			currentWriterIsC = !currentWriterIsC
+
+		}
+
+		if valA <= valB {
+			outputWriter.WriteString(strconv.Itoa(valA) + "\n")
+			isNextA = true
+			isNextB = false
+			fmt.Println("!!!!!!!!!!!!", valA, valB, valA)
+		} else {
+			outputWriter.WriteString(strconv.Itoa(valB) + "\n")
+			isNextA = false
+			isNextB = true
+			fmt.Println("!!!!!!!!!!!!", valA, valB, valB)
+		}
+		oldValA = valA
+		oldValB = valB
+		isBegin = false
+		count++
+	}
+
+	readerLost := readerOne
+	if isFileAEndFirst {
+		readerLost = readerTwo
+		outputWriter.WriteString(strconv.Itoa(valB) + "\n")
+	} else {
+		outputWriter.WriteString(strconv.Itoa(valA) + "\n")
+	}
+	count++
+
+	for {
+		str, _, err := readerLost.ReadLine()
+		if err != nil {
+			break
+		}
+		val, _ := strconv.Atoi(string(str))
+		outputWriter.WriteString(strconv.Itoa(val) + "\n")
+		count++
+	}
+	fmt.Println("!!!!!!!!!!!!", count)
+	writerOne.Flush()
+	writerTwo.Flush()
+	os.Truncate(srcFile1.Name(), 0)
+	os.Truncate(srcFile2.Name(), 0)
+}
+
 func (s *SorterExternal) Sort() []int {
+	s.CreateTempFile()
+	s.splitSrcDataByTwoFileAB()
+	fileReadOne := s.fileA
+	fileReadTwo := s.fileB
+	fileWriteOne := s.fileC
+	fileWriteTwo := s.fileD
+
+	iterateCount := 0
+	for {
+		s.oneMerge(fileReadOne, fileReadTwo, fileWriteOne, fileWriteTwo)
+		iterateCount++
+		tempReadOne := fileReadOne
+		fileReadOne = fileWriteOne
+		fileWriteOne = tempReadOne
+		tempReadTwo := fileReadTwo
+		fileReadTwo = fileWriteTwo
+		fileWriteTwo = tempReadTwo
+		f1, _ := os.Stat(fileReadOne.Name())
+		f2, _ := os.Stat(fileReadTwo.Name())
+		if f1.Size() == 0 || f2.Size() == 0 {
+			break
+		}
+	}
+	fmt.Println("Iterate count", iterateCount)
 
 	return nil
+}
+
+func (s *SorterExternal) PrintSrcFiles() {
+	countSrc := 0
+	for _, el := range s.fileList {
+		el.Seek(0, 0)
+		scanner := bufio.NewScanner(el)
+		for scanner.Scan() {
+			countSrc++
+			fmt.Printf(string(scanner.Text()) + " ")
+		}
+	}
+	fmt.Printf("\n")
+	fmt.Println("Count in Src File", countSrc)
+}
+
+func (s *SorterExternal) PrintDstFiles() {
+	fmt.Println("File A")
+	s.fileA.Seek(0, 0)
+	scanner := bufio.NewScanner(s.fileA)
+	countA := 0
+	for scanner.Scan() {
+		countA++
+		fmt.Printf(string(scanner.Text()) + " ")
+	}
+	fmt.Printf("\n")
+	fmt.Println("Count in File A", countA)
+
+	fmt.Println("File B")
+	s.fileB.Seek(0, 0)
+	scanner = bufio.NewScanner(s.fileB)
+	countB := 0
+	for scanner.Scan() {
+		countB++
+		fmt.Printf(string(scanner.Text()) + " ")
+	}
+	fmt.Printf("\n")
+	fmt.Println("Count in File B", countB)
+
+	fmt.Println("File C")
+	s.fileC.Seek(0, 0)
+	scanner = bufio.NewScanner(s.fileC)
+	countC := 0
+	for scanner.Scan() {
+		countC++
+		fmt.Printf(string(scanner.Text()) + " ")
+	}
+	fmt.Printf("\n")
+	fmt.Println("Count in File C", countC)
+	fmt.Println("File D")
+	s.fileD.Seek(0, 0)
+	scanner = bufio.NewScanner(s.fileD)
+	countD := 0
+	for scanner.Scan() {
+		countD++
+		fmt.Printf(string(scanner.Text()) + " ")
+	}
+	fmt.Printf("\n")
+	fmt.Println("Count in File D", countD)
 }
 
 //.......................................................
 
 var dir string
+var isExternal bool
 
 func init() {
 	flag.StringVar(&dir, "dir", "", "dir tests")
+	flag.BoolVar(&isExternal, "e", false, "is external sort")
 }
 
 type TestData struct {
@@ -154,34 +410,34 @@ type TestData struct {
 }
 
 func main() {
-	sortExt := &SorterExternal{}
-	sortExt.GenerateData(10, 10, 10)
-	for _, el := range sortExt.fileList {
-		el.Seek(0, 0)
-		r := bufio.NewReader(el)
-		for i := 0; i < 10; i++ {
-			l, _, err := r.ReadLine()
-			if err != nil {
-				log.Fatal(err)
-			}
-			fmt.Printf(string(l) + " ")
-		}
-	}
-	/*flag.Parse()
-	listFolder := []string{"0.random", "1.digits", "2.sorted", "3.revers"}
+	flag.Parse()
+	if isExternal {
+		sortExt := &SorterExternal{}
+		sortExt.GenerateTestData(10, 10, 10)
+		defer sortExt.RemoveTestData()
+		defer sortExt.RemoveTempFile()
+		fmt.Println("Print src array")
+		sortExt.PrintSrcFiles()
+		sortExt.Sort()
+		fmt.Println("\n Print result array")
+		sortExt.PrintDstFiles()
+	} else {
+		listFolder := []string{"0.random", "1.digits", "2.sorted", "3.revers"}
 
-	listSorterAlgo := []ISorter{&SorterMerge{}}
-	for _, lf := range listFolder {
-		log.Printf("Test folder - %s \n", lf)
-		testData, err := readTestData(dir+"\\"+lf, 7)
-		if err != nil {
-			panic(err)
-		}
-		for _, alg := range listSorterAlgo {
-			err = runTests(testData, alg)
+		listSorterAlgo := []ISorter{&SorterMerge{}}
+		for _, lf := range listFolder {
+			log.Printf("Test folder - %s \n", lf)
+			testData, err := readTestData(dir+"\\"+lf, 7)
 			if err != nil {
 				panic(err)
 			}
+			for _, alg := range listSorterAlgo {
+				err = runTests(testData, alg)
+				if err != nil {
+					panic(err)
+				}
+			}
 		}
-	}*/
+	}
+
 }
