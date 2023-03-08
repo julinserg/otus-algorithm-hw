@@ -10,6 +10,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"time"
 )
 
 func swap(array []int, indexA, indexB int) {
@@ -106,7 +107,7 @@ func (s *SorterMerge) Name() string {
 //................External sort..........................
 
 type SorterExternal struct {
-	fileList       []*os.File
+	testFile       *os.File
 	limitArraySize int
 	fileA          *os.File
 	fileB          *os.File
@@ -125,27 +126,16 @@ func (s *SorterExternal) testFileGenerate(numLine int, maxNumber int) *os.File {
 	return file
 }
 
-func (s *SorterExternal) generateTestFiles(numFile int, numLine int, maxNumber int) {
-	s.fileList = make([]*os.File, 0, numFile)
-	for i := 0; i < numFile; i++ {
-		f := s.testFileGenerate(numLine, maxNumber)
-		s.fileList = append(s.fileList, f)
-	}
-}
-
 func (s *SorterExternal) Name() string {
 	return "External"
 }
 
-func (s *SorterExternal) GenerateTestData(numFile int, numLine int, maxNumber int) {
-	s.limitArraySize = numLine
-	s.generateTestFiles(numFile, numLine, maxNumber)
+func (s *SorterExternal) GenerateTestData(numLine int, maxNumber int) {
+	s.testFile = s.testFileGenerate(numLine, maxNumber)
 }
 
 func (s *SorterExternal) RemoveTestData() {
-	for _, el := range s.fileList {
-		os.Remove(el.Name())
-	}
+	os.Remove(s.testFile.Name())
 }
 
 func (s *SorterExternal) RemoveTempFile() {
@@ -175,48 +165,51 @@ func (s *SorterExternal) CreateTempFile() {
 	}
 }
 
-func (s *SorterExternal) fileToArray(file *os.File) []int {
+func (s *SorterExternal) fileToArray(reader *bufio.Reader) ([]int, bool) {
 	result := make([]int, 0, s.limitArraySize)
-	file.Seek(0, 0)
-	reader := bufio.NewReader(file)
+
 	for i := 0; i < s.limitArraySize; i++ {
 		l, _, err := reader.ReadLine()
 		if err != nil {
-			log.Fatal(err)
+			return result, true
 		}
 		intVar, err := strconv.Atoi(string(l))
 		if err != nil {
-			log.Fatal(err)
+			return result, true
 		}
 		result = append(result, intVar)
 	}
-	return result
+	return result, false
 }
 
-func (s *SorterExternal) arrayToFile(array []int, file *os.File, isBegin bool) {
-	if isBegin {
-		os.Truncate(file.Name(), 0)
-		file.Seek(0, 0)
-	}
-
+func (s *SorterExternal) arrayToFile(array []int, file *os.File) {
 	for _, el := range array {
 		file.WriteString(strconv.Itoa(el) + "\n")
 	}
 }
 
 func (s *SorterExternal) splitSrcDataByTwoFileAB() {
-	for index, el := range s.fileList {
-		ar := s.fileToArray(el)
+	isEnd := false
+	var ar []int
+	index := 0
+	s.testFile.Seek(0, 0)
+	os.Truncate(s.fileA.Name(), 0)
+	s.fileA.Seek(0, 0)
+	os.Truncate(s.fileB.Name(), 0)
+	s.fileB.Seek(0, 0)
+	reader := bufio.NewReader(s.testFile)
+	for !isEnd {
+		ar, isEnd = s.fileToArray(reader)
+		if len(ar) == 0 {
+			break
+		}
 		sort.Ints(ar)
-		isBegin := false
-		if index == 0 {
-			isBegin = true
-		}
 		if index%2 == 0 {
-			s.arrayToFile(ar, s.fileA, isBegin)
+			s.arrayToFile(ar, s.fileA)
 		} else {
-			s.arrayToFile(ar, s.fileB, isBegin)
+			s.arrayToFile(ar, s.fileB)
 		}
+		index++
 	}
 }
 
@@ -348,13 +341,11 @@ func (s *SorterExternal) Sort() []int {
 
 func (s *SorterExternal) PrintSrcFiles() {
 	countSrc := 0
-	for _, el := range s.fileList {
-		el.Seek(0, 0)
-		scanner := bufio.NewScanner(el)
-		for scanner.Scan() {
-			countSrc++
-			fmt.Printf(string(scanner.Text()) + " ")
-		}
+	s.testFile.Seek(0, 0)
+	scanner := bufio.NewScanner(s.testFile)
+	for scanner.Scan() {
+		countSrc++
+		fmt.Printf(string(scanner.Text()) + " ")
 	}
 	fmt.Printf("\n")
 	fmt.Println("Count in Src File", countSrc)
@@ -423,13 +414,16 @@ type TestData struct {
 func main() {
 	flag.Parse()
 	if isExternal {
-		sortExt := &SorterExternal{}
-		sortExt.GenerateTestData(10, 10, 10)
+		sortExt := &SorterExternal{limitArraySize: 100}
+		sortExt.GenerateTestData(300, 10)
 		defer sortExt.RemoveTestData()
 		defer sortExt.RemoveTempFile()
 		fmt.Println("Print src array")
 		sortExt.PrintSrcFiles()
+		start := time.Now()
 		sortExt.Sort()
+		elapsed := time.Since(start)
+		fmt.Println("\n Time - ", elapsed)
 		fmt.Println("\n Print result array")
 		sortExt.PrintDstFiles()
 	} else {
