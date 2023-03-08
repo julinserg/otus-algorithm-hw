@@ -234,9 +234,11 @@ func (s *SorterExternal) oneMerge(srcFile1, srcFile2, dstFile1, dstFile2 *os.Fil
 	isNextB := true
 	count := 0
 	outputWriter := writerOne
-	currentWriterIsC := true
+	currentWriterIsOne := true
 	isBegin := true
 	isFileAEndFirst := true
+	isChangeA := false
+	isChangeB := false
 	for {
 		if isNextA {
 			strA, _, err := readerOne.ReadLine()
@@ -254,40 +256,72 @@ func (s *SorterExternal) oneMerge(srcFile1, srcFile2, dstFile1, dstFile2 *os.Fil
 			}
 			valB, _ = strconv.Atoi(string(strB))
 		}
-		if (oldValA < valA || oldValB < valB) && !isBegin {
-			if currentWriterIsC {
+
+		if oldValA > valA {
+			isChangeA = true
+		}
+		if oldValB > valB {
+			isChangeB = true
+		}
+
+		if isChangeA && isChangeB && !isBegin {
+			if currentWriterIsOne {
 				outputWriter = writerTwo
 			} else {
 				outputWriter = writerOne
 			}
-			currentWriterIsC = !currentWriterIsC
-
+			currentWriterIsOne = !currentWriterIsOne
+			isChangeA = false
+			isChangeB = false
 		}
 
-		if valA <= valB {
-			outputWriter.WriteString(strconv.Itoa(valA) + "\n")
-			isNextA = true
-			isNextB = false
-			fmt.Println("!!!!!!!!!!!!", valA, valB, valA)
-		} else {
+		if !isChangeA && !isChangeB {
+			if valA <= valB {
+				outputWriter.WriteString(strconv.Itoa(valA) + "\n")
+				isNextA = true
+				isNextB = false
+				fmt.Println("!!!!!!!!!!!!", valA, valB, valA, currentWriterIsOne)
+			} else {
+				outputWriter.WriteString(strconv.Itoa(valB) + "\n")
+				isNextA = false
+				isNextB = true
+				fmt.Println("!!!!!!!!!!!!", valA, valB, valB, currentWriterIsOne)
+			}
+		} else if isChangeA && !isChangeB {
 			outputWriter.WriteString(strconv.Itoa(valB) + "\n")
 			isNextA = false
 			isNextB = true
-			fmt.Println("!!!!!!!!!!!!", valA, valB, valB)
+			fmt.Println("!!!!!!!!!!!!", valA, valB, valB, currentWriterIsOne)
+		} else if isChangeB && !isChangeA {
+			outputWriter.WriteString(strconv.Itoa(valA) + "\n")
+			isNextA = true
+			isNextB = false
+			fmt.Println("!!!!!!!!!!!!", valA, valB, valA, currentWriterIsOne)
+		} else if isChangeA && isChangeB {
+			fmt.Println("------------", valA, valB, valA, currentWriterIsOne)
 		}
+
 		oldValA = valA
 		oldValB = valB
 		isBegin = false
 		count++
+	}
+	if isFileAEndFirst {
+		fmt.Println("File A end")
+	} else {
+		fmt.Println("File B end")
 	}
 
 	readerLost := readerOne
 	if isFileAEndFirst {
 		readerLost = readerTwo
 		outputWriter.WriteString(strconv.Itoa(valB) + "\n")
+		fmt.Println("!!!!!!!!!!!!", valB, currentWriterIsOne)
 	} else {
 		outputWriter.WriteString(strconv.Itoa(valA) + "\n")
+		fmt.Println("!!!!!!!!!!!!", valA, currentWriterIsOne)
 	}
+
 	count++
 
 	for {
@@ -297,6 +331,7 @@ func (s *SorterExternal) oneMerge(srcFile1, srcFile2, dstFile1, dstFile2 *os.Fil
 		}
 		val, _ := strconv.Atoi(string(str))
 		outputWriter.WriteString(strconv.Itoa(val) + "\n")
+		fmt.Println("!!!!!!!!!!!!", val, currentWriterIsOne)
 		count++
 	}
 	fmt.Println("!!!!!!!!!!!!", count)
@@ -317,6 +352,7 @@ func (s *SorterExternal) Sort() []int {
 	iterateCount := 0
 	for {
 		s.oneMerge(fileReadOne, fileReadTwo, fileWriteOne, fileWriteTwo)
+		s.PrintDstFiles()
 		iterateCount++
 		tempReadOne := fileReadOne
 		fileReadOne = fileWriteOne
