@@ -236,23 +236,22 @@ func (s *SorterExternal) oneMerge(srcFile1, srcFile2, dstFile1, dstFile2 *os.Fil
 	outputWriter := writerOne
 	currentWriterIsOne := true
 	isBegin := true
-	isFileAEndFirst := true
+	isFileAEnd := false
+	isFileBEnd := false
 	isChangeA := false
 	isChangeB := false
 	for {
-		if isNextA {
+		if isNextA && !isFileAEnd {
 			strA, _, err := readerOne.ReadLine()
 			if err != nil {
-				isFileAEndFirst = true
-				break
+				isFileAEnd = true
 			}
 			valA, _ = strconv.Atoi(string(strA))
 		}
-		if isNextB {
+		if isNextB && !isFileBEnd {
 			strB, _, err := readerTwo.ReadLine()
 			if err != nil {
-				isFileAEndFirst = false
-				break
+				isFileBEnd = true
 			}
 			valB, _ = strconv.Atoi(string(strB))
 		}
@@ -264,15 +263,41 @@ func (s *SorterExternal) oneMerge(srcFile1, srcFile2, dstFile1, dstFile2 *os.Fil
 			isChangeB = true
 		}
 
-		if isChangeA && isChangeB && !isBegin {
-			if currentWriterIsOne {
-				outputWriter = writerTwo
-			} else {
-				outputWriter = writerOne
+		if isFileBEnd && isFileAEnd {
+			break
+		} else if !isFileBEnd && !isFileAEnd {
+			if isChangeA && isChangeB && !isBegin {
+				if currentWriterIsOne {
+					outputWriter = writerTwo
+				} else {
+					outputWriter = writerOne
+				}
+				currentWriterIsOne = !currentWriterIsOne
+				isChangeA = false
+				isChangeB = false
 			}
-			currentWriterIsOne = !currentWriterIsOne
-			isChangeA = false
-			isChangeB = false
+		} else if isFileBEnd && !isFileAEnd {
+			if isChangeA {
+				if currentWriterIsOne {
+					outputWriter = writerTwo
+				} else {
+					outputWriter = writerOne
+				}
+				currentWriterIsOne = !currentWriterIsOne
+				isChangeA = false
+				isChangeB = true
+			}
+		} else if !isFileBEnd && isFileAEnd {
+			if isChangeB {
+				if currentWriterIsOne {
+					outputWriter = writerTwo
+				} else {
+					outputWriter = writerOne
+				}
+				currentWriterIsOne = !currentWriterIsOne
+				isChangeA = true
+				isChangeB = false
+			}
 		}
 
 		if !isChangeA && !isChangeB {
@@ -280,25 +305,21 @@ func (s *SorterExternal) oneMerge(srcFile1, srcFile2, dstFile1, dstFile2 *os.Fil
 				outputWriter.WriteString(strconv.Itoa(valA) + "\n")
 				isNextA = true
 				isNextB = false
-				fmt.Println("!!!!!!!!!!!!", valA, valB, valA, currentWriterIsOne)
 			} else {
 				outputWriter.WriteString(strconv.Itoa(valB) + "\n")
 				isNextA = false
 				isNextB = true
-				fmt.Println("!!!!!!!!!!!!", valA, valB, valB, currentWriterIsOne)
 			}
 		} else if isChangeA && !isChangeB {
 			outputWriter.WriteString(strconv.Itoa(valB) + "\n")
 			isNextA = false
 			isNextB = true
-			fmt.Println("!!!!!!!!!!!!", valA, valB, valB, currentWriterIsOne)
 		} else if isChangeB && !isChangeA {
 			outputWriter.WriteString(strconv.Itoa(valA) + "\n")
 			isNextA = true
 			isNextB = false
-			fmt.Println("!!!!!!!!!!!!", valA, valB, valA, currentWriterIsOne)
 		} else if isChangeA && isChangeB {
-			fmt.Println("------------", valA, valB, valA, currentWriterIsOne)
+			panic("Error")
 		}
 
 		oldValA = valA
@@ -306,35 +327,6 @@ func (s *SorterExternal) oneMerge(srcFile1, srcFile2, dstFile1, dstFile2 *os.Fil
 		isBegin = false
 		count++
 	}
-	if isFileAEndFirst {
-		fmt.Println("File A end")
-	} else {
-		fmt.Println("File B end")
-	}
-
-	readerLost := readerOne
-	if isFileAEndFirst {
-		readerLost = readerTwo
-		outputWriter.WriteString(strconv.Itoa(valB) + "\n")
-		fmt.Println("!!!!!!!!!!!!", valB, currentWriterIsOne)
-	} else {
-		outputWriter.WriteString(strconv.Itoa(valA) + "\n")
-		fmt.Println("!!!!!!!!!!!!", valA, currentWriterIsOne)
-	}
-
-	count++
-
-	for {
-		str, _, err := readerLost.ReadLine()
-		if err != nil {
-			break
-		}
-		val, _ := strconv.Atoi(string(str))
-		outputWriter.WriteString(strconv.Itoa(val) + "\n")
-		fmt.Println("!!!!!!!!!!!!", val, currentWriterIsOne)
-		count++
-	}
-	fmt.Println("!!!!!!!!!!!!", count)
 	writerOne.Flush()
 	writerTwo.Flush()
 	os.Truncate(srcFile1.Name(), 0)
@@ -352,7 +344,6 @@ func (s *SorterExternal) Sort() []int {
 	iterateCount := 0
 	for {
 		s.oneMerge(fileReadOne, fileReadTwo, fileWriteOne, fileWriteTwo)
-		s.PrintDstFiles()
 		iterateCount++
 		tempReadOne := fileReadOne
 		fileReadOne = fileWriteOne
@@ -366,7 +357,7 @@ func (s *SorterExternal) Sort() []int {
 			break
 		}
 	}
-	fmt.Println("Iterate count", iterateCount)
+	fmt.Println("Iterate count = ", iterateCount)
 
 	return nil
 }
