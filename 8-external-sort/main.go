@@ -256,6 +256,10 @@ func (s *SorterExternal) oneMerge(srcFile1, srcFile2, dstFile1, dstFile2 *os.Fil
 			valB, _ = strconv.Atoi(string(strB))
 		}
 
+		if isFileBEnd && isFileAEnd {
+			break
+		}
+
 		if oldValA > valA {
 			isChangeA = true
 		}
@@ -263,39 +267,19 @@ func (s *SorterExternal) oneMerge(srcFile1, srcFile2, dstFile1, dstFile2 *os.Fil
 			isChangeB = true
 		}
 
-		if isFileBEnd && isFileAEnd {
-			break
-		} else if !isFileBEnd && !isFileAEnd {
-			if isChangeA && isChangeB && !isBegin {
-				if currentWriterIsOne {
-					outputWriter = writerTwo
-				} else {
-					outputWriter = writerOne
-				}
-				currentWriterIsOne = !currentWriterIsOne
+		if isChangeA && isChangeB && !isBegin {
+			if currentWriterIsOne {
+				outputWriter = writerTwo
+			} else {
+				outputWriter = writerOne
+			}
+			currentWriterIsOne = !currentWriterIsOne
+			if !isFileBEnd && !isFileAEnd {
 				isChangeA = false
 				isChangeB = false
-			}
-		} else if isFileBEnd && !isFileAEnd {
-			if isChangeA {
-				if currentWriterIsOne {
-					outputWriter = writerTwo
-				} else {
-					outputWriter = writerOne
-				}
-				currentWriterIsOne = !currentWriterIsOne
+			} else if isFileBEnd && !isFileAEnd {
 				isChangeA = false
-				isChangeB = true
-			}
-		} else if !isFileBEnd && isFileAEnd {
-			if isChangeB {
-				if currentWriterIsOne {
-					outputWriter = writerTwo
-				} else {
-					outputWriter = writerOne
-				}
-				currentWriterIsOne = !currentWriterIsOne
-				isChangeA = true
+			} else if !isFileBEnd && isFileAEnd {
 				isChangeB = false
 			}
 		}
