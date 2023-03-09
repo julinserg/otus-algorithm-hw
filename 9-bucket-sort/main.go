@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"container/list"
 	"encoding/binary"
 	"flag"
 	"log"
@@ -91,24 +92,46 @@ func (s *SorterRadix) Name() string {
 type SorterBucket struct{}
 
 func (s *SorterBucket) Sort(arr []int) []int {
+	N := len(arr)
 	max := findMax(arr)
-	counter := make([]int, max+1)
 
-	for _, e := range arr {
-		counter[e] += 1
+	buckets := make([]*list.List, N)
+	for i := 0; i < N; i++ {
+		b := arr[i] * N / (max + 1)
+		if buckets[b] == nil {
+			buckets[b] = list.New()
+		}
+		var itForInsert *list.Element
+		for it := buckets[b].Front(); it != nil; it = it.Next() {
+			isPotentialInsert := false
+			if it.Next() == nil {
+				isPotentialInsert = true
+			} else if arr[i] < it.Next().Value.(int) {
+				isPotentialInsert = true
+			}
+			if arr[i] >= it.Value.(int) && isPotentialInsert {
+				itForInsert = it
+			}
+		}
+		if itForInsert != nil {
+			buckets[b].InsertAfter(arr[i], itForInsert)
+		} else {
+			buckets[b].PushFront(arr[i])
+		}
+
 	}
-
-	res := make([]int, len(arr))
-
-	b := 0
-	for i := 0; i < len(counter); i++ {
-		for j := 0; j < counter[i]; j++ {
-			res[b] = i
-			b++
+	result := make([]int, N)
+	index := 0
+	for i := 0; i < N; i++ {
+		if buckets[i] == nil {
+			continue
+		}
+		for it := buckets[i].Front(); it != nil; it = it.Next() {
+			result[index] = it.Value.(int)
+			index++
 		}
 	}
-
-	return res
+	return result
 }
 
 func (s *SorterBucket) Name() string {
@@ -129,7 +152,6 @@ type TestData struct {
 func main() {
 	flag.Parse()
 	listFolder := []string{"0.random", "1.digits", "2.sorted", "3.revers"}
-
 	listSorterAlgo := []ISorter{&SorterBucket{}}
 	for _, lf := range listFolder {
 		log.Printf("Test folder - %s \n", lf)
