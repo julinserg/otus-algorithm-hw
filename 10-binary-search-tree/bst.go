@@ -63,25 +63,98 @@ func (s *SimpleBST) Insert(key int, value string) {
 	s.size++
 }
 
-func (s *SimpleBST) Remove(key int) {
-	s.size--
+func (s *SimpleBST) findMaximalNode(nodeCurent *NodeBST, nodeMax *NodeBST) *NodeBST {
+	if nodeCurent == nil {
+		return nodeMax
+	}
+	if nodeCurent.key > nodeMax.key {
+		nodeMax = nodeCurent
+	}
+	return s.findMaximalNode(nodeCurent.childRight, nodeMax)
 }
 
-func (s *SimpleBST) Search(key int) string {
-	return ""
+func (s *SimpleBST) removeNodeAnalysis(node *NodeBST, isLeft bool) {
+	if node.childLeft == nil && node.childRight == nil {
+		if node.parent == nil {
+			s.root = nil
+		} else {
+			if isLeft {
+				node.parent.childLeft = nil
+			} else {
+				node.parent.childRight = nil
+			}
+		}
+	} else if node.childLeft == nil || node.childRight == nil {
+		if node.childLeft != nil {
+			node.parent.childLeft = node.childLeft
+		} else {
+			node.parent.childRight = node.childRight
+		}
+	} else {
+		nodeForRemove := s.findMaximalNode(node.childLeft, node.childLeft)
+		node.key = nodeForRemove.key
+		node.value = nodeForRemove.value
+		isLeftForRemove := false
+		if nodeForRemove.key == node.childLeft.key {
+			isLeftForRemove = true
+		}
+		s.removeNodeAnalysis(nodeForRemove, isLeftForRemove)
+	}
 }
 
-func (s *SimpleBST) printNode(node *NodeBST) {
+func (s *SimpleBST) removeNode(node *NodeBST, key int, isLeft bool) {
 	if node == nil {
 		return
 	}
+	if key == node.key {
+		s.removeNodeAnalysis(node, isLeft)
+	} else if key > node.key {
+		s.removeNode(node.childRight, key, false)
+	} else {
+		s.removeNode(node.childLeft, key, true)
+	}
+}
+
+func (s *SimpleBST) Remove(key int) {
+	s.size--
+	s.removeNode(s.root, key, false)
+}
+
+func (s *SimpleBST) searchNode(node *NodeBST, key int) string {
+	if node == nil {
+		return ""
+	}
+	if key == node.key {
+		return node.value
+	} else if key > node.key {
+		return s.searchNode(node.childRight, key)
+	} else {
+		return s.searchNode(node.childLeft, key)
+	}
+}
+
+func (s *SimpleBST) Search(key int) string {
+	return s.searchNode(s.root, key)
+}
+
+func (s *SimpleBST) printNode(node *NodeBST, level int) {
+	if node == nil {
+		return
+	}
+	level += 10
+	s.printNode(node.childRight, level)
+	fmt.Println("")
+	for i := 10; i < level; i++ {
+		fmt.Printf(" ")
+	}
 	fmt.Println(node.key)
-	s.printNode(node.childLeft)
-	s.printNode(node.childRight)
+
+	s.printNode(node.childLeft, level)
+
 }
 
 func (s *SimpleBST) Print() {
-	s.printNode(s.root)
+	s.printNode(s.root, 0)
 }
 
 func (s *SimpleBST) collectKey(node *NodeBST, array *[]int) {
