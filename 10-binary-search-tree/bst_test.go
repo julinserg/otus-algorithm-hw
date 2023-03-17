@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSimpleBST(t *testing.T) {
+func TestSimpleBST1(t *testing.T) {
 	bst := &SimpleBST{}
 
 	bst.Insert(3, "str3")
@@ -30,14 +30,43 @@ func TestSimpleBST(t *testing.T) {
 	bst.Remove(1)
 	bst.Remove(8)
 	bst.Print()
+	require.Equal(t, "", bst.Search(1))
+	require.Equal(t, "", bst.Search(8))
 	require.Equal(t, 4, bst.Size())
 	bst.Insert(8, "str8")
 	bst.Insert(1, "str1")
 	bst.Print()
 	bst.Remove(2)
+	require.Equal(t, "", bst.Search(2))
 	bst.Print()
 	bst.Insert(2, "str2")
 	bst.Print()
 	bst.Remove(7)
+	require.Equal(t, "", bst.Search(7))
 	bst.Print()
+}
+
+func TestSimpleBST2(t *testing.T) {
+	bst := &SimpleBST{}
+
+	bst.Insert(30, "str30")
+	bst.Insert(25, "str25")
+	bst.Insert(33, "str33")
+	bst.Insert(20, "str20")
+	bst.Insert(27, "str27")
+	bst.Insert(1, "str1")
+	bst.Insert(23, "str23")
+	bst.Insert(22, "str22")
+	bst.Insert(28, "str28")
+	bst.Insert(29, "str29")
+	bst.Insert(35, "str35")
+	bst.Insert(34, "str34")
+	bst.Insert(38, "str38")
+	bst.Print()
+
+	require.Equal(t, "str38", bst.Search(38))
+
+	bst.Remove(25)
+	bst.Print()
+	require.Equal(t, "", bst.Search(25))
 }

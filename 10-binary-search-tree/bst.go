@@ -85,10 +85,16 @@ func (s *SimpleBST) removeNodeAnalysis(node *NodeBST, isLeft bool) {
 			}
 		}
 	} else if node.childLeft == nil || node.childRight == nil {
+		var nodeS *NodeBST
 		if node.childLeft != nil {
-			node.parent.childLeft = node.childLeft
+			nodeS = node.childLeft
 		} else {
-			node.parent.childRight = node.childRight
+			nodeS = node.childRight
+		}
+		if isLeft {
+			node.parent.childLeft = nodeS
+		} else {
+			node.parent.childRight = nodeS
 		}
 	} else {
 		nodeForRemove := s.findMaximalNode(node.childLeft, node.childLeft)
