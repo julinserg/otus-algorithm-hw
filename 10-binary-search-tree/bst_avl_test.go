@@ -2,14 +2,18 @@ package p10bst
 
 import (
 	"fmt"
+	"log"
+	"math/rand"
 	"reflect"
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
 
-func TestSimpleBST1(t *testing.T) {
-	bst := &SimpleBST{}
+func TestAVLBST1(t *testing.T) {
+	bst := &AVLBST{}
 
 	bst.Insert(3, "str3")
 	bst.Insert(2, "str2")
@@ -46,8 +50,8 @@ func TestSimpleBST1(t *testing.T) {
 	bst.Print()
 }
 
-func TestSimpleBST2(t *testing.T) {
-	bst := &SimpleBST{}
+func TestAVLBST2(t *testing.T) {
+	bst := &AVLBST{}
 
 	bst.Insert(30, "str30")
 	bst.Insert(25, "str25")
@@ -69,4 +73,43 @@ func TestSimpleBST2(t *testing.T) {
 	bst.Remove(25)
 	bst.Print()
 	require.Equal(t, "", bst.Search(25))
+}
+
+func TestAVLBSTBigTree(t *testing.T) {
+	bstLinear := &AVLBST{}
+	N := 10000
+	for i := 0; i < N; i++ {
+		bstLinear.Insert(i, strconv.Itoa(i))
+	}
+	bstRandom := &AVLBST{}
+	for i := 0; i < N; i++ {
+		r := rand.Intn(N)
+		bstRandom.Insert(r, strconv.Itoa(r))
+	}
+	M := N / 10
+	startSL := time.Now()
+	for i := 0; i < M; i++ {
+		r := rand.Intn(N)
+		bstLinear.Search(r)
+	}
+	log.Printf("Search in linear tree %s", time.Since(startSL))
+	startSR := time.Now()
+	for i := 0; i < M; i++ {
+		r := rand.Intn(N)
+		bstRandom.Search(r)
+	}
+	log.Printf("Search in random tree %s", time.Since(startSR))
+	startRL := time.Now()
+	for i := 0; i < M; i++ {
+		r := rand.Intn(N)
+		bstLinear.Remove(r)
+	}
+	log.Printf("Remove in linear tree %s", time.Since(startRL))
+	startRR := time.Now()
+	for i := 0; i < M; i++ {
+		r := rand.Intn(N)
+		bstRandom.Remove(r)
+	}
+	log.Printf("Remove in random tree %s", time.Since(startRR))
+
 }
