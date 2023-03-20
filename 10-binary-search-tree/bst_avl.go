@@ -118,67 +118,46 @@ func (s *AVLBST) Insert(key int, value string) {
 	s.size++
 }
 
-func (s *AVLBST) findMaximalNode(nodeCurent *NodeAVL, nodeMax *NodeAVL) *NodeAVL {
-	if nodeCurent == nil {
-		return nodeMax
+func (s *AVLBST) findmin(node *NodeAVL) *NodeAVL {
+	if node.childLeft != nil {
+		return s.findmin(node.childLeft)
 	}
-	if nodeCurent.key > nodeMax.key {
-		nodeMax = nodeCurent
-	}
-	return s.findMaximalNode(nodeCurent.childRight, nodeMax)
+	return node
 }
 
-func (s *AVLBST) removeNodeAnalysis(node *NodeAVL, isLeft bool) {
-	if node.childLeft == nil && node.childRight == nil {
-		if node.parent == nil {
-			s.root = nil
-		} else {
-			if isLeft {
-				node.parent.childLeft = nil
-			} else {
-				node.parent.childRight = nil
-			}
-		}
-	} else if node.childLeft == nil || node.childRight == nil {
-		var nodeS *NodeAVL
-		if node.childLeft != nil {
-			nodeS = node.childLeft
-		} else {
-			nodeS = node.childRight
-		}
-		if isLeft {
-			node.parent.childLeft = nodeS
-		} else {
-			node.parent.childRight = nodeS
-		}
-	} else {
-		nodeForRemove := s.findMaximalNode(node.childLeft, node.childLeft)
-		node.key = nodeForRemove.key
-		node.value = nodeForRemove.value
-		isLeftForRemove := false
-		if nodeForRemove.key == node.childLeft.key {
-			isLeftForRemove = true
-		}
-		s.removeNodeAnalysis(nodeForRemove, isLeftForRemove)
+func (s *AVLBST) removemin(node *NodeAVL) *NodeAVL {
+	if node.childLeft == nil {
+		return node.childRight
 	}
+	node.childLeft = s.removemin(node.childLeft)
+	return s.balance(node)
 }
 
-func (s *AVLBST) removeNode(node *NodeAVL, key int, isLeft bool) {
+func (s *AVLBST) removeNode(node *NodeAVL, key int) *NodeAVL {
 	if node == nil {
-		return
+		return nil
 	}
-	if key == node.key {
-		s.removeNodeAnalysis(node, isLeft)
+	if key < node.key {
+		node.childLeft = s.removeNode(node.childLeft, key)
 	} else if key > node.key {
-		s.removeNode(node.childRight, key, false)
+		node.childRight = s.removeNode(node.childRight, key)
 	} else {
-		s.removeNode(node.childLeft, key, true)
+		q := node.childLeft
+		r := node.childRight
+		if r == nil {
+			return q
+		}
+		min := s.findmin(r)
+		min.childRight = s.removemin(r)
+		min.childLeft = q
+		return s.balance(min)
 	}
+	return s.balance(node)
 }
 
 func (s *AVLBST) Remove(key int) {
 	s.size--
-	s.removeNode(s.root, key, false)
+	s.removeNode(s.root, key)
 }
 
 func (s *AVLBST) searchNode(node *NodeAVL, key int) string {

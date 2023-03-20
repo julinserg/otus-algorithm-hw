@@ -79,17 +79,25 @@ func TestAVLBST3(t *testing.T) {
 
 	bst := &AVLBST{}
 
-	bst.Insert(1, "")
-	bst.Insert(2, "")
-	bst.Insert(3, "")
-	bst.Insert(4, "")
-	bst.Insert(5, "")
-	bst.Insert(6, "")
-	bst.Insert(7, "")
-	bst.Insert(8, "")
-	bst.Insert(9, "")
-	bst.Insert(10, "")
+	bst.Insert(1, "a")
+	bst.Insert(2, "b")
+	bst.Insert(3, "c")
+	bst.Insert(4, "d")
+	bst.Insert(5, "e")
+	bst.Insert(6, "f")
+	bst.Insert(7, "g")
+	bst.Insert(8, "k")
+	bst.Insert(9, "l")
+	bst.Insert(10, "m")
 	bst.Print()
+
+	bst.Remove(8)
+	bst.Remove(7)
+	bst.Remove(6)
+	bst.Print()
+	require.Equal(t, "", bst.Search(8))
+	require.Equal(t, "", bst.Search(7))
+	require.Equal(t, "", bst.Search(6))
 }
 
 func TestAVLBSTBigTree(t *testing.T) {
