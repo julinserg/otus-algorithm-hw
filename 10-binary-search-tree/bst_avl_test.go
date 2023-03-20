@@ -75,6 +75,23 @@ func TestAVLBST2(t *testing.T) {
 	require.Equal(t, "", bst.Search(25))
 }
 
+func TestAVLBST3(t *testing.T) {
+
+	bst := &AVLBST{}
+
+	bst.Insert(1, "")
+	bst.Insert(2, "")
+	bst.Insert(3, "")
+	bst.Insert(4, "")
+	bst.Insert(5, "")
+	bst.Insert(6, "")
+	bst.Insert(7, "")
+	bst.Insert(8, "")
+	bst.Insert(9, "")
+	bst.Insert(10, "")
+	bst.Print()
+}
+
 func TestAVLBSTBigTree(t *testing.T) {
 	bstLinear := &AVLBST{}
 	N := 10000

@@ -1,6 +1,9 @@
 package p10bst
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 type NodeAVL struct {
 	key        int
@@ -11,6 +14,7 @@ type NodeAVL struct {
 	childRight *NodeAVL
 }
 
+// https://habr.com/ru/post/150732/
 type AVLBST struct {
 	root *NodeAVL
 	size int
@@ -44,6 +48,9 @@ func (s *AVLBST) rotateRight(p *NodeAVL) *NodeAVL {
 	q.childRight = p
 	s.fixHeight(p)
 	s.fixHeight(q)
+	if p == s.root {
+		s.root = q
+	}
 	return q
 }
 
@@ -51,9 +58,12 @@ func (s *AVLBST) rotateLeft(q *NodeAVL) *NodeAVL {
 	p := q.childRight
 	q.childRight = p.childLeft
 	p.childLeft = q
-	s.fixHeight(p)
 	s.fixHeight(q)
-	return q
+	s.fixHeight(p)
+	if q == s.root {
+		s.root = p
+	}
+	return p
 }
 
 func (s *AVLBST) balance(p *NodeAVL) *NodeAVL {
@@ -82,39 +92,25 @@ func (s *AVLBST) IsEmpty() bool {
 }
 
 func (s *AVLBST) searchNodeAndInsert(node *NodeAVL, key int) *NodeAVL {
-	var child *NodeAVL
-	isRight := false
-	if key > node.key {
-		child = node.childRight
-		isRight = true
-	} else if key < node.key {
-		child = node.childLeft
-		isRight = false
+	if node == nil {
+		return &NodeAVL{key, "", 1, node, nil, nil}
+	}
+	if key < node.key {
+		node.childLeft = s.searchNodeAndInsert(node.childLeft, key)
 	} else {
-		return node
+		node.childRight = s.searchNodeAndInsert(node.childRight, key)
 	}
 
-	if child != nil {
-		return s.searchNodeAndInsert(child, key)
-	} else {
-		child = &NodeAVL{key, "", 0, node, nil, nil}
-		if isRight {
-			node.childRight = child
-		} else {
-			node.childLeft = child
-		}
-		return child
-	}
+	return s.balance(node)
 }
 
 func (s *AVLBST) Insert(key int, value string) {
 	if s.root == nil {
-		s.root = &NodeAVL{key, value, 0, nil, nil, nil}
+		s.root = &NodeAVL{key, value, 1, nil, nil, nil}
 	} else {
 		node := s.searchNodeAndInsert(s.root, key)
 		if node != nil {
 			node.value = value
-			s.balance(s.root)
 		} else {
 			panic("ERROR in searchNodeAndInsert")
 		}
@@ -212,7 +208,7 @@ func (s *AVLBST) printNode(node *NodeAVL, level int) {
 	for i := 10; i < level; i++ {
 		fmt.Printf(" ")
 	}
-	fmt.Println(node.key)
+	fmt.Println(node.key, "("+strconv.Itoa(node.height)+")")
 
 	s.printNode(node.childLeft, level)
 
