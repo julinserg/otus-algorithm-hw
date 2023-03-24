@@ -1,6 +1,8 @@
 package p12hashtable
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type ElementOpenAdr[K, V ItemType] struct {
 	key      KeyElement[K]
@@ -31,17 +33,20 @@ func (s *HashTableOpenAdr[K, V]) IsEmpty() bool {
 }
 
 func (s *HashTableOpenAdr[K, V]) rehash(capacity int) {
-	/*s.capacity = capacity
+	s.capacity = capacity
 	s.size = 0
-	bucketsOld := s.buckets
+	tableOld := s.table
 
-	for i := 0; i < len(bucketsOld); i++ {
-		item := bucketsOld[i]
-		for item != nil {
+	for i := 0; i < len(tableOld); i++ {
+		item := tableOld[i]
+		if item.isFill && !item.isRemove {
 			s.Insert(item.key, item.value)
-			item = item.next
 		}
-	}*/
+	}
+}
+
+func (s *HashTableOpenAdr[K, V]) index(key KeyElement[K], i int) uint32 {
+	return (key.hash() + uint32(i) + uint32(i)*uint32(i)) % uint32(s.capacity)
 }
 
 func (s *HashTableOpenAdr[K, V]) Insert(key KeyElement[K], value V) {
@@ -53,15 +58,20 @@ func (s *HashTableOpenAdr[K, V]) Insert(key KeyElement[K], value V) {
 	}
 
 	for i := 0; i < len(s.table); i++ {
-		indexTable := (key.hash() + uint32(i)) % uint32(s.capacity)
+		indexTable := s.index(key, i)
 		st := s.table[indexTable]
-		if st.isFill {
-			continue
+		if st.isFill && !st.isRemove {
+			if st.key == key {
+				st.value = value
+				return
+			} else {
+				continue
+			}
 		}
 		s.table[indexTable] = ElementOpenAdr[K, V]{key, value, true, false}
-		break
+		s.size++
+		return
 	}
-
 }
 
 func (s *HashTableOpenAdr[K, V]) Remove(key KeyElement[K]) bool {
@@ -71,7 +81,15 @@ func (s *HashTableOpenAdr[K, V]) Remove(key KeyElement[K]) bool {
 	if s.size*4 < s.capacity {
 		s.rehash(s.size * 2)
 	}
-	//indexTable := key.hash() % uint32(s.capacity)
+	for i := 0; i < len(s.table); i++ {
+		indexTable := s.index(key, i)
+		st := s.table[indexTable]
+		if st.isFill && !st.isRemove && st.key == key {
+			s.table[indexTable].isRemove = true
+			s.size--
+			return true
+		}
+	}
 
 	return false
 }
@@ -82,21 +100,18 @@ func (s *HashTableOpenAdr[K, V]) Search(key KeyElement[K]) V {
 		return value
 	}
 	for i := 0; i < len(s.table); i++ {
-		indexTable := (key.hash() + uint32(i)) % uint32(s.capacity)
+		indexTable := s.index(key, i)
 		st := s.table[indexTable]
-		if st.isFill {
-			continue
+		if st.isFill && !st.isRemove && st.key == key {
+			return st.value
 		}
-		s.table[indexTable] = ElementOpenAdr[K, V]{key, value, true, false}
-		break
 	}
-
 	return value
 }
 
 func (s *HashTableOpenAdr[K, V]) Print() {
 	for i := 0; i < len(s.table); i++ {
-		if !s.table[i].isFill {
+		if !s.table[i].isFill || s.table[i].isRemove {
 			continue
 		}
 		fmt.Println("key =", s.table[i].key.key(), ", value =", s.table[i].value)
@@ -106,7 +121,7 @@ func (s *HashTableOpenAdr[K, V]) Print() {
 func (s *HashTableOpenAdr[K, V]) ListKey() []KeyElement[K] {
 	result := make([]KeyElement[K], 0)
 	for i := 0; i < s.capacity; i++ {
-		if !s.table[i].isFill {
+		if !s.table[i].isFill || s.table[i].isRemove {
 			continue
 		}
 		item := s.table[i]

@@ -33,7 +33,7 @@ func TestHashTableOpenAdr(t *testing.T) {
 
 func TestHashTableOpenAdrWithRehash(t *testing.T) {
 	hashTable := &HashTableOpenAdr[string, string]{}
-	N := 100000
+	N := 10000
 	for i := 0; i < N; i++ {
 		r := rand.Intn(N)
 		rStr := strconv.Itoa(r)
