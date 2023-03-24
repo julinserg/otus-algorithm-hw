@@ -40,6 +40,7 @@ func (s *SimpleBST) searchNodeAndInsert(node *NodeBST, key int) *NodeBST {
 		return s.searchNodeAndInsert(child, key)
 	} else {
 		child = &NodeBST{key, "", node, nil, nil}
+		s.size++
 		if isRight {
 			node.childRight = child
 		} else {
@@ -52,6 +53,7 @@ func (s *SimpleBST) searchNodeAndInsert(node *NodeBST, key int) *NodeBST {
 func (s *SimpleBST) Insert(key int, value string) {
 	if s.root == nil {
 		s.root = &NodeBST{key, value, nil, nil, nil}
+		s.size++
 	} else {
 		node := s.searchNodeAndInsert(s.root, key)
 		if node != nil {
@@ -60,7 +62,7 @@ func (s *SimpleBST) Insert(key int, value string) {
 			panic("ERROR in searchNodeAndInsert")
 		}
 	}
-	s.size++
+
 }
 
 func (s *SimpleBST) findMaximalNode(nodeCurent *NodeBST, nodeMax *NodeBST) *NodeBST {
@@ -114,6 +116,7 @@ func (s *SimpleBST) removeNode(node *NodeBST, key int, isLeft bool) {
 	}
 	if key == node.key {
 		s.removeNodeAnalysis(node, isLeft)
+		s.size--
 	} else if key > node.key {
 		s.removeNode(node.childRight, key, false)
 	} else {
@@ -122,7 +125,6 @@ func (s *SimpleBST) removeNode(node *NodeBST, key int, isLeft bool) {
 }
 
 func (s *SimpleBST) Remove(key int) {
-	s.size--
 	s.removeNode(s.root, key, false)
 }
 

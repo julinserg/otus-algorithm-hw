@@ -91,14 +91,17 @@ func (s *AVLBST) IsEmpty() bool {
 	return s.Size() == 0
 }
 
-func (s *AVLBST) searchNodeAndInsert(node *NodeAVL, key int) *NodeAVL {
+func (s *AVLBST) searchNodeAndInsert(node *NodeAVL, key int, value string) *NodeAVL {
 	if node == nil {
-		return &NodeAVL{key, "", 1, node, nil, nil}
+		s.size++
+		return &NodeAVL{key, value, 1, node, nil, nil}
 	}
 	if key < node.key {
-		node.childLeft = s.searchNodeAndInsert(node.childLeft, key)
+		node.childLeft = s.searchNodeAndInsert(node.childLeft, key, value)
+	} else if key > node.key {
+		node.childRight = s.searchNodeAndInsert(node.childRight, key, value)
 	} else {
-		node.childRight = s.searchNodeAndInsert(node.childRight, key)
+		node.value = value
 	}
 
 	return s.balance(node)
@@ -107,15 +110,13 @@ func (s *AVLBST) searchNodeAndInsert(node *NodeAVL, key int) *NodeAVL {
 func (s *AVLBST) Insert(key int, value string) {
 	if s.root == nil {
 		s.root = &NodeAVL{key, value, 1, nil, nil, nil}
+		s.size++
 	} else {
-		node := s.searchNodeAndInsert(s.root, key)
-		if node != nil {
-			node.value = value
-		} else {
+		node := s.searchNodeAndInsert(s.root, key, value)
+		if node == nil {
 			panic("ERROR in searchNodeAndInsert")
 		}
 	}
-	s.size++
 }
 
 func (s *AVLBST) findmin(node *NodeAVL) *NodeAVL {
@@ -142,10 +143,17 @@ func (s *AVLBST) removeNode(node *NodeAVL, key int) *NodeAVL {
 	} else if key > node.key {
 		node.childRight = s.removeNode(node.childRight, key)
 	} else {
+		s.size--
 		q := node.childLeft
 		r := node.childRight
 		if r == nil {
+			if node == s.root {
+				s.root = q
+			}
 			return q
+		}
+		if node == s.root {
+			s.root = r
 		}
 		min := s.findmin(r)
 		min.childRight = s.removemin(r)
@@ -156,7 +164,6 @@ func (s *AVLBST) removeNode(node *NodeAVL, key int) *NodeAVL {
 }
 
 func (s *AVLBST) Remove(key int) {
-	s.size--
 	s.removeNode(s.root, key)
 }
 

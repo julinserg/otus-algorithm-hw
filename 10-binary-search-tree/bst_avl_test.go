@@ -21,11 +21,12 @@ func TestAVLBST1(t *testing.T) {
 	bst.Insert(7, "str7")
 	bst.Insert(5, "str5")
 	bst.Insert(8, "str8")
+	bst.Insert(8, "str88")
 	fmt.Println(bst.ListKey())
-	require.Equal(t, true, reflect.DeepEqual([]int{3, 2, 1, 7, 5, 8}, bst.ListKey()))
+	require.Equal(t, true, reflect.DeepEqual([]int{5, 2, 1, 3, 7, 8}, bst.ListKey()))
 	bst.Print()
 
-	require.Equal(t, "str8", bst.Search(8))
+	require.Equal(t, "str88", bst.Search(8))
 	require.Equal(t, "str3", bst.Search(3))
 	require.Equal(t, "str2", bst.Search(2))
 
@@ -33,6 +34,7 @@ func TestAVLBST1(t *testing.T) {
 
 	bst.Remove(1)
 	bst.Remove(8)
+	bst.Remove(12345)
 	bst.Print()
 	require.Equal(t, "", bst.Search(1))
 	require.Equal(t, "", bst.Search(8))
