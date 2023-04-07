@@ -2,14 +2,15 @@ package p10bst2
 
 import (
 	"fmt"
+	"math"
+	"math/rand"
 	"strconv"
 )
 
 type NodeRandomBST struct {
 	key        int
 	value      string
-	height     int
-	parent     *NodeRandomBST
+	size       int
 	childLeft  *NodeRandomBST
 	childRight *NodeRandomBST
 }
@@ -20,34 +21,27 @@ type RandomBST struct {
 	size int
 }
 
-func (s *RandomBST) getHeight(p *NodeRandomBST) int {
+func (s *RandomBST) getSize(p *NodeRandomBST) int {
 	if p == nil {
 		return 0
 	} else {
-		return p.height
+		return p.size
 	}
 }
 
-func (s *RandomBST) getBFactor(p *NodeRandomBST) int {
-	return s.getHeight(p.childRight) - s.getHeight(p.childLeft)
-}
-
-func (s *RandomBST) fixHeight(p *NodeRandomBST) {
-	hl := s.getHeight(p.childLeft)
-	hr := s.getHeight(p.childRight)
-	if hl > hr {
-		p.height = hl + 1
-	} else {
-		p.height = hr + 1
-	}
+func (s *RandomBST) fixSize(p *NodeRandomBST) {
+	p.size = s.getSize(p.childLeft) + s.getSize(p.childRight) + 1
 }
 
 func (s *RandomBST) rotateRight(p *NodeRandomBST) *NodeRandomBST {
 	q := p.childLeft
+	if q == nil {
+		return p
+	}
 	p.childLeft = q.childRight
 	q.childRight = p
-	s.fixHeight(p)
-	s.fixHeight(q)
+	q.size = p.size
+	s.fixSize(p)
 	if p == s.root {
 		s.root = q
 	}
@@ -56,31 +50,34 @@ func (s *RandomBST) rotateRight(p *NodeRandomBST) *NodeRandomBST {
 
 func (s *RandomBST) rotateLeft(q *NodeRandomBST) *NodeRandomBST {
 	p := q.childRight
+	if p == nil {
+		return q
+	}
 	q.childRight = p.childLeft
 	p.childLeft = q
-	s.fixHeight(q)
-	s.fixHeight(p)
+	p.size = q.size
+	s.fixSize(q)
 	if q == s.root {
 		s.root = p
 	}
 	return p
 }
 
-func (s *RandomBST) balance(p *NodeRandomBST) *NodeRandomBST {
-	s.fixHeight(p)
-	if s.getBFactor(p) == 2 {
-		if s.getBFactor(p.childRight) < 0 {
-			p.childRight = s.rotateRight(p.childRight)
-		}
-		return s.rotateLeft(p)
+func (s *RandomBST) insertRoot(node *NodeRandomBST, key int, value string) *NodeRandomBST {
+	if node == nil {
+		s.size++
+		return &NodeRandomBST{key, value, 1, nil, nil}
 	}
-	if s.getBFactor(p) == -2 {
-		if s.getBFactor(p.childLeft) > 0 {
-			p.childLeft = s.rotateLeft(p.childLeft)
-		}
-		return s.rotateRight(p)
+	if key < node.key {
+		node.childLeft = s.insertRoot(node.childLeft, key, value)
+		return s.rotateRight(node)
+	} else if key > node.key {
+		node.childRight = s.insertRoot(node.childRight, key, value)
+		return s.rotateLeft(node)
+	} else {
+		node.value = value
+		return node
 	}
-	return p
 }
 
 func (s *RandomBST) Size() int {
@@ -94,7 +91,11 @@ func (s *RandomBST) IsEmpty() bool {
 func (s *RandomBST) searchNodeAndInsert(node *NodeRandomBST, key int, value string) *NodeRandomBST {
 	if node == nil {
 		s.size++
-		return &NodeRandomBST{key, value, 1, node, nil, nil}
+		return &NodeRandomBST{key, value, 1, nil, nil}
+	}
+
+	if rand.Intn(math.MaxInt32)%(node.size+1) == 0 {
+		return s.insertRoot(node, key, value)
 	}
 	if key < node.key {
 		node.childLeft = s.searchNodeAndInsert(node.childLeft, key, value)
@@ -103,13 +104,13 @@ func (s *RandomBST) searchNodeAndInsert(node *NodeRandomBST, key int, value stri
 	} else {
 		node.value = value
 	}
-
-	return s.balance(node)
+	s.fixSize(node)
+	return node
 }
 
 func (s *RandomBST) Insert(key int, value string) {
 	if s.root == nil {
-		s.root = &NodeRandomBST{key, value, 1, nil, nil, nil}
+		s.root = &NodeRandomBST{key, value, 1, nil, nil}
 		s.size++
 	} else {
 		node := s.searchNodeAndInsert(s.root, key, value)
@@ -119,19 +120,22 @@ func (s *RandomBST) Insert(key int, value string) {
 	}
 }
 
-func (s *RandomBST) findmin(node *NodeRandomBST) *NodeRandomBST {
-	if node.childLeft != nil {
-		return s.findmin(node.childLeft)
+func (s *RandomBST) join(p *NodeRandomBST, q *NodeRandomBST) *NodeRandomBST {
+	if p == nil {
+		return q
 	}
-	return node
-}
-
-func (s *RandomBST) removemin(node *NodeRandomBST) *NodeRandomBST {
-	if node.childLeft == nil {
-		return node.childRight
+	if q == nil {
+		return p
 	}
-	node.childLeft = s.removemin(node.childLeft)
-	return s.balance(node)
+	if rand.Intn(math.MaxInt32)%(p.size+q.size) < p.size {
+		p.childRight = s.join(p.childRight, q)
+		s.fixSize(p)
+		return p
+	} else {
+		q.childLeft = s.join(p, q.childLeft)
+		s.fixSize(q)
+		return q
+	}
 }
 
 func (s *RandomBST) removeNode(node *NodeRandomBST, key int) *NodeRandomBST {
@@ -143,24 +147,14 @@ func (s *RandomBST) removeNode(node *NodeRandomBST, key int) *NodeRandomBST {
 	} else if key > node.key {
 		node.childRight = s.removeNode(node.childRight, key)
 	} else {
-		s.size--
-		q := node.childLeft
-		r := node.childRight
-		if r == nil {
-			if node == s.root {
-				s.root = q
-			}
-			return q
-		}
+		q := s.join(node.childLeft, node.childRight)
 		if node == s.root {
-			s.root = r
+			s.root = q
 		}
-		min := s.findmin(r)
-		min.childRight = s.removemin(r)
-		min.childLeft = q
-		return s.balance(min)
+		s.size--
+		return q
 	}
-	return s.balance(node)
+	return node
 }
 
 func (s *RandomBST) Remove(key int) {
@@ -194,7 +188,7 @@ func (s *RandomBST) printNode(node *NodeRandomBST, level int) {
 	for i := 10; i < level; i++ {
 		fmt.Printf(" ")
 	}
-	fmt.Println(node.key, "("+strconv.Itoa(node.height)+")")
+	fmt.Println(node.key, "("+strconv.Itoa(node.size)+")")
 
 	s.printNode(node.childLeft, level)
 

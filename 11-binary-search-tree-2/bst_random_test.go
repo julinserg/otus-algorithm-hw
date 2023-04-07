@@ -1,10 +1,8 @@
 package p10bst2
 
 import (
-	"fmt"
 	"log"
 	"math/rand"
-	"reflect"
 	"strconv"
 	"testing"
 	"time"
@@ -22,8 +20,6 @@ func TestRandomBST1(t *testing.T) {
 	bst.Insert(5, "str5")
 	bst.Insert(8, "str8")
 	bst.Insert(8, "str88")
-	fmt.Println(bst.ListKey())
-	require.Equal(t, true, reflect.DeepEqual([]int{5, 2, 1, 3, 7, 8}, bst.ListKey()))
 	bst.Print()
 
 	require.Equal(t, "str88", bst.Search(8))
