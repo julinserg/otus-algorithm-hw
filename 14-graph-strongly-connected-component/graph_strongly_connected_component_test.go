@@ -63,6 +63,10 @@ func TestGraphComponents(t *testing.T) {
 	gfscc.Print("D")
 
 	components := gfscc.FindStronglyConnectedComponents()
+	fmt.Println("reachability from A")
+	gfscc.Print("A")
+	fmt.Println("reachability from D")
+	gfscc.Print("D")
 	comp1 := listVertexName(components[0])
 	comp2 := listVertexName(components[1])
 	comp3 := listVertexName(components[2])
@@ -72,8 +76,4 @@ func TestGraphComponents(t *testing.T) {
 	require.Equal(t, true, sameStringSlice([]string{"A", "B"}, comp1))
 	require.Equal(t, true, sameStringSlice([]string{"C", "D"}, comp2))
 
-	fmt.Println("reachability from A")
-	gfscc.Print("A")
-	fmt.Println("reachability from D")
-	gfscc.Print("D")
 }

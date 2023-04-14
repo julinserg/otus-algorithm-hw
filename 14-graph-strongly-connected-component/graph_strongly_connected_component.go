@@ -1,44 +1,29 @@
 package p14graphstronglyconnectedcomponent
 
-import (
-	"fmt"
-	"sort"
-)
+import "fmt"
 
 type GraphFindSCC struct {
-	matrixLink        map[string]List
-	markRecursCounter int
+	matrixLink map[string]List
 }
 
-type action func(string)
-
-func (g *GraphFindSCC) dfs(nameVertex string, funcAction action) {
-	vertexVisit := make(map[string]string, 0)
-	stack := NewList()
-	stack.PushFront(nameVertex)
-	for stack.Len() != 0 {
-		vertex := stack.Front().Value.(string)
-		stack.Remove(stack.Front())
+func (g *GraphFindSCC) printLocal(vertexVisit map[string]string, vertexName string) {
+	vertexVisit[vertexName] = vertexName
+	fmt.Println(vertexName)
+	node := g.matrixLink[vertexName].Front()
+	for node != nil {
+		vertex := node.Value.(string)
 		_, ok := vertexVisit[vertex]
 		if ok {
-			continue
-		}
-		vertexVisit[vertex] = vertex
-		funcAction(vertex)
-		listAdjVertex := g.matrixLink[vertex]
-		if listAdjVertex == nil {
-			continue
-		}
-		node := listAdjVertex.Front()
-		for node != nil {
-			stack.PushFront(node.Value)
 			node = node.Next
+			continue
 		}
+		g.printLocal(vertexVisit, vertex)
+		node = node.Next
 	}
 }
-
 func (g *GraphFindSCC) Print(nameBeginVertex string) {
-	g.dfs(nameBeginVertex, func(vertex string) { fmt.Println(vertex) })
+	vertexVisit := make(map[string]string, 0)
+	g.printLocal(vertexVisit, nameBeginVertex)
 }
 
 func isContains(list List, value string) bool {
@@ -57,7 +42,7 @@ func isContains(list List, value string) bool {
 
 func (g *GraphFindSCC) invert() {
 	vertexVisit := make(map[string]string, 0)
-	for key, _ := range g.matrixLink {
+	for key := range g.matrixLink {
 		_, ok := vertexVisit[key]
 		if ok {
 			continue
@@ -67,6 +52,11 @@ func (g *GraphFindSCC) invert() {
 		listVertexForRemove := make([]*ListItem, 0)
 		for node != nil {
 			vertex := node.Value.(string)
+			_, ok := vertexVisit[vertex]
+			if ok {
+				node = node.Next
+				continue
+			}
 			if !isContains(g.matrixLink[vertex], key) {
 				g.matrixLink[vertex].PushBack(key)
 				listVertexForRemove = append(listVertexForRemove, node)
@@ -79,63 +69,67 @@ func (g *GraphFindSCC) invert() {
 	}
 
 }
-func (g *GraphFindSCC) markLocal(markVertex map[string]int, vertexName string) {
-	if len(markVertex) == len(g.matrixLink) {
-		return
-	}
-	g.markRecursCounter++
-	markVertex[vertexName] = g.markRecursCounter
+func (g *GraphFindSCC) markLocal(sortVertex *[]string, vertexVisit map[string]string, vertexName string) {
+	vertexVisit[vertexName] = vertexName
 	node := g.matrixLink[vertexName].Front()
 	for node != nil {
 		vertex := node.Value.(string)
-		_, ok := markVertex[vertex]
+		_, ok := vertexVisit[vertex]
 		if ok {
 			node = node.Next
 			continue
 		}
-		g.markLocal(markVertex, vertex)
-		g.markRecursCounter++
-		markVertex[vertexName] = g.markRecursCounter
+		g.markLocal(sortVertex, vertexVisit, vertex)
 		node = node.Next
 	}
+	*sortVertex = append(*sortVertex, vertexName)
 
 }
 func (g *GraphFindSCC) mark() []string {
-	g.markRecursCounter = 0
-	markVertex := make(map[string]int, 0)
-	//---mark---
+	sortVertex := make([]string, 0)
+	vertexVisit := make(map[string]string, 0)
+
 	for key := range g.matrixLink {
-		g.markLocal(markVertex, key)
+		_, ok := vertexVisit[key]
+		if ok {
+			continue
+		}
+		g.markLocal(&sortVertex, vertexVisit, key)
 	}
-	//---sort---
-	sortVertex := make([]string, 0, len(markVertex))
-	for key := range markVertex {
-		sortVertex = append(sortVertex, key)
-	}
-	sort.SliceStable(sortVertex, func(i, j int) bool {
-		return markVertex[sortVertex[i]] > markVertex[sortVertex[j]]
-	})
 	return sortVertex
+}
+
+func (g *GraphFindSCC) findLocal(components map[int]List, numComponent int, vertexVisit map[string]string, vertexName string) {
+	vertexVisit[vertexName] = vertexName
+	if components[numComponent] == nil {
+		components[numComponent] = NewList()
+	}
+	components[numComponent].PushBack(vertexName)
+	node := g.matrixLink[vertexName].Front()
+	for node != nil {
+		vertex := node.Value.(string)
+		_, ok := vertexVisit[vertex]
+		if ok {
+			node = node.Next
+			continue
+		}
+		g.findLocal(components, numComponent, vertexVisit, vertex)
+		node = node.Next
+	}
 }
 
 func (g *GraphFindSCC) find(sortVertex []string) map[int]List {
 	components := make(map[int]List, 0)
 	vertexVisit := make(map[string]string, 0)
 	numComponent := 0
-	for _, vertex := range sortVertex {
+	for i := len(sortVertex) - 1; i >= 0; i-- {
+		vertex := sortVertex[i]
 		_, ok := vertexVisit[vertex]
 		if ok {
 			continue
 		}
 		vertexVisit[vertex] = vertex
-
-		g.dfs(vertex, func(key string) {
-			if components[numComponent] == nil {
-				components[numComponent] = NewList()
-			}
-			components[numComponent].PushBack(key)
-			vertexVisit[key] = key
-		})
+		g.findLocal(components, numComponent, vertexVisit, vertex)
 		numComponent++
 	}
 	return components
