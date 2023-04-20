@@ -1,21 +1,9 @@
 package p15graphtopologicalsort
 
 import (
+	"fmt"
 	"testing"
 )
-
-func listVertexName(list List) []string {
-	result := make([]string, 0)
-	if list == nil || list.Len() == 0 {
-		return result
-	}
-	node := list.Front()
-	for node != nil {
-		result = append(result, node.Value.(string))
-		node = node.Next
-	}
-	return result
-}
 
 func sameStringSlice(x, y []string) bool {
 	if len(x) != len(y) {
@@ -43,14 +31,18 @@ func sameStringSlice(x, y []string) bool {
 func TestGraphSort(t *testing.T) {
 	graph := make([]NodeGraph, 0)
 	graph = append(graph, NodeGraph{"A", []string{"B"}})
-	graph = append(graph, NodeGraph{"B", []string{"A", "C"}})
+	graph = append(graph, NodeGraph{"B", []string{"E"}})
 	graph = append(graph, NodeGraph{"C", []string{"D"}})
-	graph = append(graph, NodeGraph{"D", []string{"C"}})
+	graph = append(graph, NodeGraph{"D", []string{"A", "B", "E", "F"}})
+	graph = append(graph, NodeGraph{"E", []string{"G"}})
+	graph = append(graph, NodeGraph{"F", []string{"H"}})
+	graph = append(graph, NodeGraph{"G", []string{"H"}})
+	graph = append(graph, NodeGraph{"H", []string{}})
 
 	gfscc := GraphSort{matrixLinkSrc: graph}
 
-	gfscc.Sort()
-	gfscc.PrintMatrixAdj()
+	result := gfscc.Sort()
+	fmt.Println(result)
 	/*fmt.Println("reachability from A")
 	gfscc.PrintInvert("A")
 	fmt.Println("reachability from D")
