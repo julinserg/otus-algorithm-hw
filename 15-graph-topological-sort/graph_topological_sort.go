@@ -134,7 +134,8 @@ func (g *GraphSort) Sort() []string {
 	sortNodeIndex := make([]int, 0)
 	sumRow := g.sumRows()
 	levelSumRow := sumRow
-	for level := 0; level < len(g.matrixAdj)-1; level++ {
+	level := 0
+	for len(sortNodeIndex) != len(g.matrixAdj) {
 		g.printSumRows(levelSumRow, level)
 		zeroIndexs := g.findZeros(levelSumRow)
 		if len(zeroIndexs) == 0 {
@@ -150,6 +151,7 @@ func (g *GraphSort) Sort() []string {
 		}
 		g.normalization(sub)
 		levelSumRow = sub
+		level++
 	}
 
 	sortNodeName := make([]string, len(sortNodeIndex))

@@ -3,6 +3,8 @@ package p15graphtopologicalsort
 import (
 	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func sameStringSlice(x, y []string) bool {
@@ -43,15 +45,6 @@ func TestGraphSort(t *testing.T) {
 
 	result := gfscc.Sort()
 	fmt.Println(result)
-	/*fmt.Println("reachability from A")
-	gfscc.PrintInvert("A")
-	fmt.Println("reachability from D")
-	gfscc.PrintInvert("D")
-	comp1 := listVertexName(components[0])
-	comp2 := listVertexName(components[1])
-	fmt.Println(comp1)
-	fmt.Println(comp2)
-	require.Equal(t, true, sameStringSlice([]string{"A", "B"}, comp1))
-	require.Equal(t, true, sameStringSlice([]string{"C", "D"}, comp2))*/
+	require.Equal(t, true, sameStringSlice([]string{"C", "D", "A", "F", "B", "E", "G", "H"}, result))
 
 }
