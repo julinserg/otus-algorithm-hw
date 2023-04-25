@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGraphMinimumSpanningTree(t *testing.T) {
+func TestGraphShortestPath(t *testing.T) {
 	graph := make([]NodeGraph, 0)
 	graph = append(graph, NodeGraph{"A", []NodeParams{{"B", 1}, {"C", 3}, {"E", 2}}})
 	graph = append(graph, NodeGraph{"B", []NodeParams{{"A", 1}, {"D", 6}, {"C", 4}, {"G", 1}}})
