@@ -117,18 +117,30 @@ func runIndexTests(t *testing.T, f func(s, sep string) int, funcName string, tes
 func TestSearchSimple(t *testing.T) {
 	runIndexTests(t, SearchSimple, "SearchSimple", indexTests)
 }
+func TestSearchSimpleWithShiftPrefix(t *testing.T) {
+	runIndexTests(t, SearchSimple, "SearchSimpleWithShiftPrefix", indexTests)
+}
 func TestSearchBoyerMoore(t *testing.T) {
 	runIndexTests(t, SearchBoyerMoore, "SearchBoyerMoore", indexTests)
 }
 
-const benchmarkString = "some_text=some☺value"
+const benchmarkString = "some_text=somevalue"
 
 func BenchmarkSearchSimple(b *testing.B) {
-	if got := SearchSimple(benchmarkString, "v"); got != 17 {
-		b.Fatalf("wrong index: expected 17, got=%d", got)
+	if got := SearchSimple(benchmarkString, "val"); got != 14 {
+		b.Fatalf("wrong index: expected 14, got=%d", got)
 	}
 	for i := 0; i < b.N; i++ {
 		SearchSimple(benchmarkString, "v")
+	}
+}
+
+func BenchmarkSearchSimpleWithShiftPrefix(b *testing.B) {
+	if got := SearchSimpleWithShiftPrefix(benchmarkString, "val"); got != 14 {
+		b.Fatalf("wrong index: expected 14, got=%d", got)
+	}
+	for i := 0; i < b.N; i++ {
+		SearchSimpleWithShiftPrefix(benchmarkString, "v")
 	}
 }
 
