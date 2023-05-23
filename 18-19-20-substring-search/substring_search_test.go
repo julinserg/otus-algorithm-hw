@@ -1,6 +1,8 @@
 package p181920substringsearch
 
-import "testing"
+import (
+	"testing"
+)
 
 type IndexTest struct {
 	s   string
@@ -118,37 +120,36 @@ func TestSearchSimple(t *testing.T) {
 	runIndexTests(t, SearchSimple, "SearchSimple", indexTests)
 }
 func TestSearchSimpleWithShiftPrefix(t *testing.T) {
-	runIndexTests(t, SearchSimple, "SearchSimpleWithShiftPrefix", indexTests)
+	runIndexTests(t, SearchSimpleWithShiftPrefix, "SearchSimpleWithShiftPrefix", indexTests)
+}
+
+func TestSearchSimpleWithShiftSuffix(t *testing.T) {
+	runIndexTests(t, SearchSimpleWithShiftSuffix, "SearchSimpleWithShiftSuffix", indexTests)
 }
 func TestSearchBoyerMoore(t *testing.T) {
 	runIndexTests(t, SearchBoyerMoore, "SearchBoyerMoore", indexTests)
 }
 
-const benchmarkString = "some_text=somevalue"
-
 func BenchmarkSearchSimple(b *testing.B) {
-	if got := SearchSimple(benchmarkString, "val"); got != 14 {
-		b.Fatalf("wrong index: expected 14, got=%d", got)
-	}
 	for i := 0; i < b.N; i++ {
-		SearchSimple(benchmarkString, "v")
+		runIndexTests(nil, SearchSimple, "SearchSimple", indexTests)
 	}
 }
 
 func BenchmarkSearchSimpleWithShiftPrefix(b *testing.B) {
-	if got := SearchSimpleWithShiftPrefix(benchmarkString, "val"); got != 14 {
-		b.Fatalf("wrong index: expected 14, got=%d", got)
-	}
 	for i := 0; i < b.N; i++ {
-		SearchSimpleWithShiftPrefix(benchmarkString, "v")
+		runIndexTests(nil, SearchSimpleWithShiftPrefix, "SearchSimpleWithShiftPrefix", indexTests)
+	}
+}
+
+func BenchmarkSearchSimpleWithShiftSuffix(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		runIndexTests(nil, SearchSimpleWithShiftSuffix, "SearchSimpleWithShiftSuffix", indexTests)
 	}
 }
 
 func BenchmarkSearchBoyerMoore(b *testing.B) {
-	if got := SearchBoyerMoore(benchmarkString, "v"); got != 17 {
-		b.Fatalf("wrong index: expected 17, got=%d", got)
-	}
 	for i := 0; i < b.N; i++ {
-		SearchBoyerMoore(benchmarkString, "v")
+		runIndexTests(nil, SearchBoyerMoore, "SearchBoyerMoore", indexTests)
 	}
 }
