@@ -193,7 +193,8 @@ func TestCreateStateMachineAndSearch(t *testing.T) {
 func TestCreatePi(t *testing.T) {
 	pi1 := CreatePiSlow("AABAABAAABA")
 	pi2 := CreatePiFast("AABAABAAABA")
-	require.Equal(t, pi1, pi2)
+	require.Equal(t, []int{0, 0, 1, 0, 1, 2, 3, 4, 5, 2, 3, 4}, pi1)
+	require.Equal(t, []int{0, 0, 1, 0, 1, 2, 3, 4, 5, 2, 3, 4}, pi2)
 }
 
 func TestSearchKnuthMorrisPratt(t *testing.T) {
