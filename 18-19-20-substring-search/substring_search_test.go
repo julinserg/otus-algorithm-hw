@@ -2,6 +2,8 @@ package p181920substringsearch
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 type IndexTest struct {
@@ -179,5 +181,27 @@ func BenchmarkSearchSimpleWithShiftSuffix(b *testing.B) {
 func BenchmarkSearchBoyerMoore(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		SearchBoyerMoore(benchmarkString, benchmarkSubString)
+	}
+}
+
+func TestCreateStateMachineAndSearch(t *testing.T) {
+	delta := CreateStateMachine("AABAABAAABA")
+	index := SearchByStateMachine("AABAABAABAAABA", delta)
+	require.Equal(t, 3, index)
+}
+
+func TestCreatePi(t *testing.T) {
+	pi1 := CreatePiSlow("AABAABAAABA")
+	pi2 := CreatePiFast("AABAABAAABA")
+	require.Equal(t, pi1, pi2)
+}
+
+func TestSearchKnuthMorrisPratt(t *testing.T) {
+	runIndexTests(t, SearchKnuthMorrisPratt, "SearchKnuthMorrisPratt", indexTests)
+}
+
+func BenchmarkSearchKnuthMorrisPratt(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		SearchKnuthMorrisPratt(benchmarkString, benchmarkSubString)
 	}
 }
