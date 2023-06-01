@@ -1,4 +1,4 @@
-module otus_algorithm_home_work
+module github.com/julinserg/otus_algorithm_home_work
 
 go 1.20
 
