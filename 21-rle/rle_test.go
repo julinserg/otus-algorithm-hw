@@ -7,15 +7,15 @@ import (
 )
 
 func TestRle(t *testing.T) {
-	encode := rleEncode("AABAABAAABA")
+	encode := RLEEncode("AABAABAAABA")
 	require.Equal(t, "A2B1A2B1A3B1A1", encode)
 
-	decode := rleDecode("A2B1A2B1A3B1A1")
+	decode := RLEDecode("A2B1A2B1A3B1A1")
 	require.Equal(t, "AABAABAAABA", decode)
 
-	encode1 := rleEncode("A")
+	encode1 := RLEEncode("A")
 	require.Equal(t, "A1", encode1)
 
-	decode1 := rleDecode("A1")
+	decode1 := RLEDecode("A1")
 	require.Equal(t, "A", decode1)
 }

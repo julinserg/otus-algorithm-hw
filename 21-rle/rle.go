@@ -4,7 +4,7 @@ import (
 	"strconv"
 )
 
-func rleEncode(str string) string {
+func RLEEncode(str string) string {
 	var result string
 	for i := 0; i < len(str); i++ {
 		count := 1
@@ -17,7 +17,7 @@ func rleEncode(str string) string {
 	return result
 }
 
-func rleDecode(str string) string {
+func RLEDecode(str string) string {
 	var result string
 	for i := 0; i < len(str); i++ {
 		num, err := strconv.Atoi(string(str[i]))
