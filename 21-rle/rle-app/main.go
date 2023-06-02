@@ -9,13 +9,13 @@ import (
 )
 
 var (
-	fromPath, toPath, typeAction string
+	fromPath, toPath, mode string
 )
 
 func init() {
 	flag.StringVar(&fromPath, "from", "", "file src")
 	flag.StringVar(&toPath, "to", "", "file dst")
-	flag.StringVar(&typeAction, "type", "encode", "encode/decode")
+	flag.StringVar(&mode, "mode", "encode", "encode/decode")
 }
 
 func main() {
@@ -27,12 +27,12 @@ func main() {
 	}
 
 	var resultRLE string
-	if typeAction == "encode" {
+	if mode == "encode" {
 		resultRLE = p21rle.RLEEncode(string(b))
-	} else if typeAction == "decode" {
+	} else if mode == "decode" {
 		resultRLE = p21rle.RLEDecode(string(b))
 	} else {
-		fmt.Print("type field should be encode or decode")
+		fmt.Print("type field must be encode or decode")
 	}
 
 	destination, err := os.Create(toPath)

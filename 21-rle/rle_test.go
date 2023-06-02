@@ -7,15 +7,21 @@ import (
 )
 
 func TestRle(t *testing.T) {
-	encode := RLEEncode("AABAABAAABA")
-	require.Equal(t, "A2B1A2B1A3B1A1", encode)
+	encode := RleEncode([]byte{'A', 'A', 'B', 'A', 'A', 'B', 'A', 'A', 'A', 'B', 'A'})
+	require.Equal(t, []byte{191 + 2, 'A', 'B', 191 + 2, 'A', 'B', 191 + 3, 'A', 'B', 'A'}, encode)
 
-	decode := RLEDecode("A2B1A2B1A3B1A1")
-	require.Equal(t, "AABAABAAABA", decode)
+	decode := RleDecode([]byte{191 + 2, 'A', 'B', 191 + 2, 'A', 'B', 191 + 3, 'A', 'B', 'A'})
+	require.Equal(t, []byte{'A', 'A', 'B', 'A', 'A', 'B', 'A', 'A', 'A', 'B', 'A'}, decode)
 
-	encode1 := RLEEncode("A")
-	require.Equal(t, "A1", encode1)
+	encode1 := RleEncode([]byte{'A'})
+	require.Equal(t, []byte{'A'}, encode1)
 
-	decode1 := RLEDecode("A1")
-	require.Equal(t, "A", decode1)
+	decode1 := RleDecode([]byte{'A'})
+	require.Equal(t, []byte{'A'}, decode1)
+
+	encode2 := RleEncode([]byte{191 + '1'})
+	require.Equal(t, []byte{191 + 1, 191 + '1'}, encode2)
+
+	decode2 := RleDecode([]byte{191 + 1, 191 + '1'})
+	require.Equal(t, []byte{191 + '1'}, decode2)
 }

@@ -1,30 +1,33 @@
 package p21rle
 
-import (
-	"strconv"
-)
-
-func RLEEncode(str string) string {
-	var result string
-	for i := 0; i < len(str); i++ {
+func RleEncode(data []byte) []byte {
+	result := make([]byte, 0)
+	for i := 0; i < len(data); i++ {
 		count := 1
-		for i+1 < len(str) && str[i] == str[i+1] {
+		for i+1 < len(data) && data[i] == data[i+1] && count < 64 {
 			count++
 			i++
 		}
-		result += string(str[i]) + strconv.Itoa(count)
+		if count > 1 || data[i] >= 192 {
+			result = append(result, 191+byte(count))
+			result = append(result, data[i])
+		} else {
+			result = append(result, data[i])
+		}
 	}
 	return result
 }
 
-func RLEDecode(str string) string {
-	var result string
-	for i := 0; i < len(str); i++ {
-		num, err := strconv.Atoi(string(str[i]))
-		if err == nil {
-			for j := 0; j < num; j++ {
-				result += string(str[i-1])
+func RleDecode(data []byte) []byte {
+	result := make([]byte, 0)
+	for i := 0; i < len(data); i++ {
+		if data[i] < 192 {
+			result = append(result, data[i])
+		} else if i+1 < len(data) {
+			for j := 0; j < int(data[i])-191; j++ {
+				result = append(result, data[i+1])
 			}
+			i++
 		}
 	}
 	return result
