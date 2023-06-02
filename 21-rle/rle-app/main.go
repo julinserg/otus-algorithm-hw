@@ -21,16 +21,16 @@ func init() {
 func main() {
 	flag.Parse()
 
-	b, err := os.ReadFile(fromPath) // just pass the file name
+	b, err := os.ReadFile(fromPath)
 	if err != nil {
 		panic(err)
 	}
 
-	var resultRLE string
+	var resultRLE []byte
 	if mode == "encode" {
-		resultRLE = p21rle.RLEEncode(string(b))
+		resultRLE = p21rle.RleEncode(b)
 	} else if mode == "decode" {
-		resultRLE = p21rle.RLEDecode(string(b))
+		resultRLE = p21rle.RleDecode(b)
 	} else {
 		fmt.Print("type field must be encode or decode")
 	}
@@ -41,7 +41,7 @@ func main() {
 	}
 	defer destination.Close()
 
-	_, err = destination.Write([]byte(resultRLE))
+	_, err = destination.Write(resultRLE)
 	if err != nil {
 		panic(err)
 	}

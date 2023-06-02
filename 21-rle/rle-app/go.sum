@@ -1,6 +1,8 @@
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/julinserg/otus_algorithm_home_work v1.0.1 h1:5UjbnKVeDSu0p7TES3o4XccBcZZHLenGcqTF6JKNzzY=
 github.com/julinserg/otus_algorithm_home_work v1.0.1/go.mod h1:VjvjFR4POXhMzG7moKWTy6frJcgHyJHEYmwkFJWD1kM=
+github.com/julinserg/otus_algorithm_home_work v1.0.2 h1:qe2nIQGKEerwRPJ8AWrwu1i1IKqEaWBk8blRsGmUoaY=
+github.com/julinserg/otus_algorithm_home_work v1.0.2/go.mod h1:VjvjFR4POXhMzG7moKWTy6frJcgHyJHEYmwkFJWD1kM=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/stretchr/testify v1.8.2 h1:+h33VjcLVPDHtOdpUCuF+7gSuG3yGIftsP1YvFihtJ8=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
