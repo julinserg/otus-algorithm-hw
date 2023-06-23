@@ -70,7 +70,38 @@ func TestCountMinSketch(t *testing.T) {
 	runCountMinSketchTests(t, countUniqueCountMinSketch, "countUniqueCountMinSketch", countMinSketchTestData)
 }
 
-func TestCountMinSketchOnBigData(t *testing.T) {
+//*******************https://www.kaggle.com/datasets/datasnaek/youtube-new***********************************
+
+type CountMinSketchTestYoutubeData struct {
+	id       int
+	inW      int
+	inD      int
+	outError int
+}
+
+var countMinSketchTestYoutubeData = []CountMinSketchTestYoutubeData{
+	{1, 10000000, 5, 0},
+	{1, 1000000, 5, 10},
+	{1, 100000, 5, 49677},
+	{1, 10000, 5, 157673},
+	{1, 1000, 5, 157673},
+	{1, 100, 5, 157673},
+	{1, 10000000, 4, 0},
+	{1, 10000000, 3, 0},
+	{1, 10000000, 2, 30},
+	{1, 10000000, 1, 2419},
+}
+
+func runCountMinSketchTestsYoutubeData(t *testing.T, f func(t *testing.T, w int, d int) int, funcName string, testCases []CountMinSketchTestYoutubeData) {
+	for _, test := range testCases {
+		actual := f(t, test.inW, test.inD)
+		if actual != test.outError {
+			t.Errorf("%s(id dataset=%d) = %v; want %v", funcName, test.id, actual, test.outError)
+		}
+	}
+}
+
+func countMinSketchOnYoutubeData(t *testing.T, w int, d int) int {
 	// https://www.kaggle.com/datasets/datasnaek/youtube-new
 	file, err := os.Open("RUvideos.csv")
 	if err != nil {
@@ -78,8 +109,8 @@ func TestCountMinSketchOnBigData(t *testing.T) {
 	}
 	defer file.Close()
 
-	sk := probably.NewSketch(1<<20, 5)
-
+	etalonMap := make(map[string]int)
+	sk := probably.NewSketch(w, d)
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -89,22 +120,35 @@ func TestCountMinSketchOnBigData(t *testing.T) {
 		tags := strings.Split(tagsLine, "|")
 		for _, tag := range tags {
 			sk.Increment(tag)
+			etalonMap[tag] += 1
 		}
 	}
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
 
-	require.Equal(t, 367, int(sk.Count("футбол")))
-	require.Equal(t, 84, int(sk.Count("хоккей")))
-	require.Equal(t, 43, int(sk.Count("бокс")))
-	require.Equal(t, 33, int(sk.Count("смешанные единоборства")))
-	require.Equal(t, 32, int(sk.Count("плавание")))
-	require.Equal(t, 12, int(sk.Count("бег")))
-	require.Equal(t, 13, int(sk.Count("баскетбол")))
-	require.Equal(t, 5, int(sk.Count("теннис")))
-	require.Equal(t, 1, int(sk.Count("волейбол")))
-	require.Equal(t, 0, int(sk.Count("триатлон")))
-	require.Equal(t, 0, int(sk.Count("трейлранинг")))
-	require.Equal(t, 1379, int(sk.Count("политика")))
+	require.Equal(t, 367, etalonMap["футбол"])
+	require.Equal(t, 84, etalonMap["хоккей"])
+	require.Equal(t, 43, etalonMap["бокс"])
+	require.Equal(t, 33, etalonMap["смешанные единоборства"])
+	require.Equal(t, 32, etalonMap["плавание"])
+	require.Equal(t, 12, etalonMap["бег"])
+	require.Equal(t, 13, etalonMap["баскетбол"])
+	require.Equal(t, 5, etalonMap["теннис"])
+	require.Equal(t, 1, etalonMap["волейбол"])
+	require.Equal(t, 0, etalonMap["триатлон"])
+	require.Equal(t, 0, etalonMap["трейлранинг"])
+	require.Equal(t, 1379, etalonMap["политика"])
+	require.Equal(t, 1533, etalonMap["юмор"])
+
+	errorCounts := 0
+	for k, v := range etalonMap {
+		if int(sk.Count(k)) != v {
+			errorCounts++
+		}
+	}
+	return errorCounts
+}
+func TestCountMinSketchOnYoutubeData(t *testing.T) {
+	runCountMinSketchTestsYoutubeData(t, countMinSketchOnYoutubeData, "countMinSketchOnYoutubeData", countMinSketchTestYoutubeData)
 }
