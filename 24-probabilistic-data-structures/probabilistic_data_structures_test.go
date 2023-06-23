@@ -81,15 +81,15 @@ type CountMinSketchTestYoutubeData struct {
 
 var countMinSketchTestYoutubeData = []CountMinSketchTestYoutubeData{
 	{1, 10000000, 5, 0},
-	{1, 1000000, 5, 10},
-	{1, 100000, 5, 49677},
-	{1, 10000, 5, 157673},
-	{1, 1000, 5, 157673},
-	{1, 100, 5, 157673},
-	{1, 10000000, 4, 0},
-	{1, 10000000, 3, 0},
-	{1, 10000000, 2, 30},
-	{1, 10000000, 1, 2419},
+	{2, 1000000, 5, 10},
+	{3, 100000, 5, 49677},
+	{4, 10000, 5, 157673},
+	{5, 1000, 5, 157673},
+	{6, 100, 5, 157673},
+	{7, 10000000, 4, 0},
+	{8, 10000000, 3, 0},
+	{9, 10000000, 2, 30},
+	{10, 10000000, 1, 2419},
 }
 
 func runCountMinSketchTestsYoutubeData(t *testing.T, f func(t *testing.T, w int, d int) int, funcName string, testCases []CountMinSketchTestYoutubeData) {
