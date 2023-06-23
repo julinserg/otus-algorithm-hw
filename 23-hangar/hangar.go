@@ -1,5 +1,9 @@
 package p23hangar
 
+import (
+	"github.com/golang-collections/collections/stack"
+)
+
 func findLocalMaxSquare(garden [][]int, i, j int) int {
 	maxSquare := 0
 	h := 0
@@ -117,6 +121,67 @@ func hangarO3(garden [][]int) int {
 		widths = calcColumnWidths(j, garden, widths)
 		for i := 0; i < N; i++ {
 			square := findLocalMaxSquareO3(garden, i, j, widths)
+			if square > maxSquare {
+				maxSquare = square
+			}
+		}
+	}
+	return maxSquare
+}
+
+func calcL(garden [][]int, L []int, widths []int) []int {
+	stackL := stack.New()
+	N := len(garden)
+	for i := N - 1; i >= 0; i-- {
+		for stackL.Len() != 0 {
+			if widths[stackL.Peek().(int)] > widths[i] {
+				L[stackL.Pop().(int)] = i + 1
+			} else {
+				break
+			}
+		}
+		stackL.Push(i)
+	}
+	for stackL.Len() != 0 {
+		L[stackL.Pop().(int)] = 0
+	}
+	return L
+}
+
+func calcR(garden [][]int, R []int, widths []int) []int {
+	stackR := stack.New()
+	N := len(garden)
+	for i := 0; i < N; i++ {
+		for stackR.Len() != 0 {
+			if widths[stackR.Peek().(int)] > widths[i] {
+				R[stackR.Pop().(int)] = i - 1
+			} else {
+				break
+			}
+		}
+		stackR.Push(i)
+	}
+	for stackR.Len() != 0 {
+		R[stackR.Pop().(int)] = N - 1
+	}
+	return R
+}
+
+func hangarO2(garden [][]int) int {
+	N := len(garden)
+	M := len(garden[0])
+	maxSquare := 0
+	widths := make([]int, N)
+	L := make([]int, N)
+	R := make([]int, N)
+	for j := 0; j < M; j++ {
+		widths = calcColumnWidths(j, garden, widths)
+		L = calcL(garden, L, widths)
+		R = calcR(garden, R, widths)
+		for i := 0; i < N; i++ {
+			w := widths[i]
+			h := R[i] - L[i] + 1
+			square := w * h
 			if square > maxSquare {
 				maxSquare = square
 			}
