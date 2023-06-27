@@ -2,8 +2,6 @@ package p24probabilisticdatastructures
 
 import (
 	"bufio"
-	"bytes"
-	"encoding/gob"
 	"fmt"
 	"log"
 	"os"
@@ -76,10 +74,10 @@ func TestCountMinSketch(t *testing.T) {
 //*******************https://www.kaggle.com/datasets/datasnaek/youtube-new***********************************
 
 type CountMinSketchTestYoutubeData struct {
-	id       int
-	inW      int
-	inD      int
-	outError int
+	id            int
+	inW           int
+	inD           int
+	outErrorCount int
 }
 
 var countMinSketchTestYoutubeData = []CountMinSketchTestYoutubeData{
@@ -93,27 +91,21 @@ var countMinSketchTestYoutubeData = []CountMinSketchTestYoutubeData{
 	{8, 10000000, 3, 0},
 	{9, 10000000, 2, 30},
 	{10, 10000000, 1, 2419},
-	{10, 500000, 2, 11531},
+	{11, 500000, 2, 11531},
 }
 
-func runCountMinSketchTestsYoutubeData(t *testing.T, f func(t *testing.T, w int, d int) int, funcName string, testCases []CountMinSketchTestYoutubeData) {
+func runCountMinSketchTestsYoutubeData(t *testing.T, f func(t *testing.T, w int, d int) (int, float64), funcName string, testCases []CountMinSketchTestYoutubeData) {
 	for _, test := range testCases {
-		actual := f(t, test.inW, test.inD)
-		if actual != test.outError {
-			t.Errorf("%s(id dataset=%d) = %v; want %v", funcName, test.id, actual, test.outError)
+		actualError, actualAccuracy := f(t, test.inW, test.inD)
+		if actualError != test.outErrorCount {
+			t.Errorf("%s(id dataset=%d) = %v; want %v", funcName, test.id, actualError, test.outErrorCount)
+		} else {
+			fmt.Printf("%s(id dataset=%d) Accuracy = %v \n", funcName, test.id, actualAccuracy)
 		}
 	}
 }
 
-func getRealSizeOf(v interface{}) (int, error) {
-	b := new(bytes.Buffer)
-	if err := gob.NewEncoder(b).Encode(v); err != nil {
-		return 0, err
-	}
-	return b.Len(), nil
-}
-
-func countMinSketchOnYoutubeData(t *testing.T, w int, d int) int {
+func countMinSketchOnYoutubeData(t *testing.T, w int, d int) (int, float64) {
 	// https://www.kaggle.com/datasets/datasnaek/youtube-new
 	file, err := os.Open("RUvideos.csv")
 	if err != nil {
@@ -139,9 +131,6 @@ func countMinSketchOnYoutubeData(t *testing.T, w int, d int) int {
 		log.Fatal(err)
 	}
 
-	m, _ := getRealSizeOf(etalonMap)
-	fmt.Println("Size map", m)
-
 	require.Equal(t, 367, etalonMap["футбол"])
 	require.Equal(t, 84, etalonMap["хоккей"])
 	require.Equal(t, 43, etalonMap["бокс"])
@@ -162,8 +151,7 @@ func countMinSketchOnYoutubeData(t *testing.T, w int, d int) int {
 			errorCounts++
 		}
 	}
-	fmt.Printf("Accuracy %f \n", 1-float64(errorCounts)/float64(len(etalonMap)))
-	return errorCounts
+	return errorCounts, 1 - float64(errorCounts)/float64(len(etalonMap))
 }
 func TestCountMinSketchOnYoutubeData(t *testing.T) {
 	runCountMinSketchTestsYoutubeData(t, countMinSketchOnYoutubeData, "countMinSketchOnYoutubeData", countMinSketchTestYoutubeData)
@@ -221,6 +209,6 @@ func BenchmarkSimpleMap(b *testing.B) {
 
 func BenchmarkCountMinSketch(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		countMinSketchBench(10, 5)
+		countMinSketchBench(500000, 2)
 	}
 }
